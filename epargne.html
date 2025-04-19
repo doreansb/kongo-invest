@@ -1,0 +1,1486 @@
+<!DOCTYPE html><html lang="fr"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BankConnect - Espace Client</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        secondary: '#4F46E5',
+                        tertiary: '#818CF8',
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
+                        dark: {
+                            bg: '#181818',
+                            card: '#262626',
+                            text: '#E5E5E5'
+                        },
+                        light: {
+                            bg: '#F9FAFB',
+                            card: '#FFFFFF',
+                            text: '#1F2937'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            overflow-x: hidden;
+        }
+        
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            transition: all 0.3s ease;
+        }
+        
+        @media (max-width: 1024px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100%;
+                z-index: 50;
+                transition: all 0.3s ease;
+            }
+            
+            .sidebar.open {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        /* Smooth transitions */
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(93, 92, 222, 0.6);
+            border-radius: 10px;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background: rgba(93, 92, 222, 0.8);
+        }
+        
+        /* Scale animation */
+        .scale-in {
+            animation: scaleIn 0.3s ease-out;
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Fade animation */
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Slide animation */
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text transition-all duration-300">
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white dark:bg-dark-card shadow-lg h-screen w-64 fixed lg:static transition-all">
+            <div class="p-4 flex items-center justify-between border-b dark:border-gray-700">
+                <div class="flex items-center">
+                   
+                    <h1 class="text-xl font-bold"><img src="Kongo Invest.png" alt="" width="100px"></h1>
+                </div>
+                <button id="close-sidebar" class="lg:hidden text-gray-500 dark:text-gray-400 hover:text-primary">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <nav class="p-4">
+                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold mb-4">Menu Principal</p>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#dashboard" class="nav-link active flex items-center p-3 rounded-lg text-primary bg-gray-100 dark:bg-gray-800 font-medium transition-all">
+                            <i class="fas fa-tachometer-alt mr-3"></i>
+                            <span>Tableau de bord</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#transactions" class="nav-link flex items-center p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            <span>Transactions</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#deposit" class="nav-link flex items-center p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all">
+                            <i class="fas fa-wallet mr-3"></i>
+                            <span>Dépôt</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#withdraw" class="nav-link flex items-center p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all">
+                            <i class="fas fa-money-bill-wave mr-3"></i>
+                            <span>Retrait</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#account" class="nav-link flex items-center p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all">
+                            <i class="fas fa-piggy-bank mr-3"></i>
+                            <span>Type de Compte</span>
+                        </a>
+                    </li>
+                </ul>
+                
+                <hr class="my-6 border-gray-200 dark:border-gray-700">
+                
+                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold mb-4">Paramètres</p>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#profile" class="nav-link flex items-center p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all">
+                            <i class="fas fa-user-circle mr-3"></i>
+                            <span>Profil</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#settings" class="flex items-center p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all">
+                            <i class="fas fa-cog mr-3"></i>
+                            <span>Paramètres</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center p-3 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 font-medium transition-all">
+                            <i class="fas fa-sign-out-alt mr-3"></i>
+                            <span>Déconnexion</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <!-- Main content -->
+        <main class="main-content w-full min-h-screen transition-all">
+            <!-- Header -->
+            <header class="bg-white dark:bg-dark-card shadow-md py-4 px-6 flex justify-between items-center sticky top-0 z-10">
+                <div class="flex items-center">
+                    <button id="toggle-sidebar" class="mr-4 text-gray-500 dark:text-gray-400 hover:text-primary lg:hidden">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h2 class="text-xl font-bold" id="page-title">Tableau de bord</h2>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Dark mode toggle -->
+                    <button id="dark-mode-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                        <i class="fas fa-moon dark:hidden text-gray-600"></i>
+                        <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+                    </button>
+                    
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                            <i class="fas fa-bell text-gray-600 dark:text-gray-400"></i>
+                            <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+                    </div>
+                    
+                    <!-- Profile dropdown -->
+                    <div class="relative" id="profile-dropdown">
+                        <button class="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full p-1 transition-all">
+                            <img src="2150312712.jpg" alt="Profile" class="w-8 h-8 rounded-full object-cover">
+                            <span class="ml-2 font-medium hidden sm:block">M. ERIC</span>
+                            <i class="fas fa-chevron-down ml-2 text-xs text-gray-500 dark:text-gray-400 hidden sm:block"></i>
+                        </button>
+                        
+                        <div class="dropdown-menu absolute right-0 top-full mt-2 w-48 bg-white dark:bg-dark-card rounded-lg shadow-lg py-2 hidden z-20">
+                            <a href="#profile" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                                <i class="fas fa-user-circle mr-2"></i>
+                                Profil
+                            </a>
+                            <a href="#settings" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                                <i class="fas fa-cog mr-2"></i>
+                                Paramètres
+                            </a>
+                            <hr class="my-1 border-gray-200 dark:border-gray-700">
+                            <a href="#" class="block px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
+                                <i class="fas fa-sign-out-alt mr-2"></i>
+                                Déconnexion
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content sections -->
+            <div class="p-6">
+                <!-- Dashboard section -->
+                <section id="dashboard-section" class="page-section space-y-6 animate-fade-in">
+                    <!-- Account summary cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 scale-in">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm">Solde disponible</p>
+                                    <h3 class="text-2xl font-bold mt-1">1,250.00 $</h3>
+                                    <p class="text-success text-sm flex items-center mt-2">
+                                        <i class="fas fa-arrow-up mr-1"></i>
+                                        <span>12.5% ce mois</span>
+                                    </p>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                    <i class="fas fa-wallet text-primary"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 scale-in" style="animation-delay: 0.1s">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm">Intérêts gagnés</p>
+                                    <h3 class="text-2xl font-bold mt-1">125.00 $</h3>
+                                    <p class="text-success text-sm flex items-center mt-2">
+                                        <i class="fas fa-arrow-up mr-1"></i>
+                                        <span>10% ce mois</span>
+                                    </p>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                                    <i class="fas fa-percentage text-green-500"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 scale-in" style="animation-delay: 0.2s">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm">Dépôts</p>
+                                    <h3 class="text-2xl font-bold mt-1">450.00 $</h3>
+                                    <p class="text-success text-sm flex items-center mt-2">
+                                        <i class="fas fa-arrow-up mr-1"></i>
+                                        <span>3 derniers mois</span>
+                                    </p>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                    <i class="fas fa-money-bill-wave text-blue-500"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 scale-in" style="animation-delay: 0.3s">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm">Retraits</p>
+                                    <h3 class="text-2xl font-bold mt-1">200.00 $</h3>
+                                    <p class="text-danger text-sm flex items-center mt-2">
+                                        <i class="fas fa-arrow-down mr-1"></i>
+                                        <span>3 derniers mois</span>
+                                    </p>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                                    <i class="fas fa-hand-holding-usd text-red-500"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 lg:col-span-2 scale-in">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200">Évolution du solde</h3>
+                                <div class="flex items-center space-x-2">
+                                    <button class="period-btn active px-3 py-1 text-xs font-medium rounded-full bg-primary text-white">1M</button>
+                                    <button class="period-btn px-3 py-1 text-xs font-medium rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">3M</button>
+                                    <button class="period-btn px-3 py-1 text-xs font-medium rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">6M</button>
+                                    <button class="period-btn px-3 py-1 text-xs font-medium rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">1A</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="balanceChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 scale-in">
+                            <h3 class="font-semibold text-gray-800 dark:text-gray-200 mb-6">Répartition</h3>
+                            <div class="chart-container" style="height: 250px">
+                                <canvas id="transactionChart"></canvas>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mt-6">
+                                <div class="flex items-center">
+                                    <span class="w-3 h-3 rounded-full bg-primary mr-2"></span>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Dépôts</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="w-3 h-3 rounded-full bg-tertiary mr-2"></span>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Intérêts</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="w-3 h-3 rounded-full bg-danger mr-2"></span>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Retraits</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="w-3 h-3 rounded-full bg-warning mr-2"></span>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Frais</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent transactions -->
+                    <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 scale-in">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-semibold text-gray-800 dark:text-gray-200">Transactions récentes</h3>
+                            <a href="#transactions" class="text-primary text-sm hover:underline">Voir tout</a>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b dark:border-gray-700">
+                                        <th class="text-left py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Date</th>
+                                        <th class="text-left py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Type</th>
+                                        <th class="text-left py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Description</th>
+                                        <th class="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Montant</th>
+                                        <th class="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Solde</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-2">15 Août 2023</td>
+                                        <td class="py-3 px-2">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Dépôt</span>
+                                        </td>
+                                        <td class="py-3 px-2">Dépôt Mobile Money</td>
+                                        <td class="py-3 px-2 text-right text-success">+200.00 $</td>
+                                        <td class="py-3 px-2 text-right font-medium">1,250.00 $</td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-2">10 Août 2023</td>
+                                        <td class="py-3 px-2">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Intérêt</span>
+                                        </td>
+                                        <td class="py-3 px-2">Intérêts mensuels</td>
+                                        <td class="py-3 px-2 text-right text-success">+50.00 $</td>
+                                        <td class="py-3 px-2 text-right font-medium">1,050.00 $</td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-2">5 Août 2023</td>
+                                        <td class="py-3 px-2">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Retrait</span>
+                                        </td>
+                                        <td class="py-3 px-2">Retrait en espèces</td>
+                                        <td class="py-3 px-2 text-right text-danger">-100.00 $</td>
+                                        <td class="py-3 px-2 text-right font-medium">1,000.00 $</td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-2">1 Août 2023</td>
+                                        <td class="py-3 px-2">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Dépôt</span>
+                                        </td>
+                                        <td class="py-3 px-2">Dépôt Mobile Money</td>
+                                        <td class="py-3 px-2 text-right text-success">+250.00 $</td>
+                                        <td class="py-3 px-2 text-right font-medium">1,100.00 $</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Transactions section -->
+                <section id="transactions-section" class="page-section hidden space-y-6">
+                    <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6">
+                        <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+                            <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-xl">Historique des transactions</h3>
+                            
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <div class="relative">
+                                    <input type="text" class="pl-10 pr-4 py-2 border dark:border-gray-700 rounded-lg w-full bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Rechercher...">
+                                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                                
+                                <select class="border dark:border-gray-700 rounded-lg px-4 py-2 bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="all">Tous les types</option>
+                                    <option value="deposit">Dépôts</option>
+                                    <option value="withdraw">Retraits</option>
+                                    <option value="interest">Intérêts</option>
+                                </select>
+                                
+                                <select class="border dark:border-gray-700 rounded-lg px-4 py-2 bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="30">30 derniers jours</option>
+                                    <option value="90">3 derniers mois</option>
+                                    <option value="180">6 derniers mois</option>
+                                    <option value="365">12 derniers mois</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b dark:border-gray-700">
+                                        <th class="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">#Réf</th>
+                                        <th class="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Date</th>
+                                        <th class="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Type</th>
+                                        <th class="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Description</th>
+                                        <th class="text-right py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Montant</th>
+                                        <th class="text-right py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Solde</th>
+                                        <th class="text-center py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">État</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-4 font-medium">#TR-7865</td>
+                                        <td class="py-3 px-4">15 Août 2023</td>
+                                        <td class="py-3 px-4">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Dépôt</span>
+                                        </td>
+                                        <td class="py-3 px-4">Dépôt Mobile Money</td>
+                                        <td class="py-3 px-4 text-right text-success">+200.00 $</td>
+                                        <td class="py-3 px-4 text-right font-medium">1,250.00 $</td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Terminé</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-4 font-medium">#TR-7864</td>
+                                        <td class="py-3 px-4">10 Août 2023</td>
+                                        <td class="py-3 px-4">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Intérêt</span>
+                                        </td>
+                                        <td class="py-3 px-4">Intérêts mensuels</td>
+                                        <td class="py-3 px-4 text-right text-success">+50.00 $</td>
+                                        <td class="py-3 px-4 text-right font-medium">1,050.00 $</td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Terminé</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-4 font-medium">#TR-7863</td>
+                                        <td class="py-3 px-4">5 Août 2023</td>
+                                        <td class="py-3 px-4">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Retrait</span>
+                                        </td>
+                                        <td class="py-3 px-4">Retrait en espèces</td>
+                                        <td class="py-3 px-4 text-right text-danger">-100.00 $</td>
+                                        <td class="py-3 px-4 text-right font-medium">1,000.00 $</td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Terminé</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-4 font-medium">#TR-7862</td>
+                                        <td class="py-3 px-4">1 Août 2023</td>
+                                        <td class="py-3 px-4">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Dépôt</span>
+                                        </td>
+                                        <td class="py-3 px-4">Dépôt Mobile Money</td>
+                                        <td class="py-3 px-4 text-right text-success">+250.00 $</td>
+                                        <td class="py-3 px-4 text-right font-medium">1,100.00 $</td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Terminé</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-4 font-medium">#TR-7861</td>
+                                        <td class="py-3 px-4">25 Juillet 2023</td>
+                                        <td class="py-3 px-4">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Frais</span>
+                                        </td>
+                                        <td class="py-3 px-4">Frais de service</td>
+                                        <td class="py-3 px-4 text-right text-danger">-5.00 $</td>
+                                        <td class="py-3 px-4 text-right font-medium">850.00 $</td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Terminé</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-4 font-medium">#TR-7860</td>
+                                        <td class="py-3 px-4">15 Juillet 2023</td>
+                                        <td class="py-3 px-4">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Retrait</span>
+                                        </td>
+                                        <td class="py-3 px-4">Retrait en espèces</td>
+                                        <td class="py-3 px-4 text-right text-danger">-100.00 $</td>
+                                        <td class="py-3 px-4 text-right font-medium">855.00 $</td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Terminé</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-4 font-medium">#TR-7859</td>
+                                        <td class="py-3 px-4">10 Juillet 2023</td>
+                                        <td class="py-3 px-4">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Intérêt</span>
+                                        </td>
+                                        <td class="py-3 px-4">Intérêts mensuels</td>
+                                        <td class="py-3 px-4 text-right text-success">+45.00 $</td>
+                                        <td class="py-3 px-4 text-right font-medium">955.00 $</td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Terminé</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <div class="flex justify-between items-center mt-6">
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Affichage de 1 à 7 sur 24 entrées</p>
+                            
+                            <div class="flex space-x-2">
+                                <button class="px-3 py-1 rounded border dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50" disabled="">Précédent</button>
+                                <button class="px-3 py-1 rounded border dark:border-gray-700 bg-primary text-white">1</button>
+                                <button class="px-3 py-1 rounded border dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">2</button>
+                                <button class="px-3 py-1 rounded border dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">3</button>
+                                <button class="px-3 py-1 rounded border dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">Suivant</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Deposit section -->
+                <section id="deposit-section" class="page-section hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-xl mb-6">Dépôt via Mobile Money</h3>
+                                
+                                <form class="space-y-6">
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Opérateur Mobile Money</label>
+                                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="operator" class="sr-only peer" checked="">
+                                                <div class="flex flex-col items-center p-4 rounded-lg border-2 peer-checked:border-primary peer-checked:bg-primary/5 transition-all dark:border-gray-700">
+                                                    <i class="fas fa-mobile-alt text-2xl mb-2 text-orange-500"></i>
+                                                    <span class="font-medium">Orange Money</span>
+                                                </div>
+                                            </label>
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="operator" class="sr-only peer">
+                                                <div class="flex flex-col items-center p-4 rounded-lg border-2 peer-checked:border-primary peer-checked:bg-primary/5 transition-all dark:border-gray-700">
+                                                    <i class="fas fa-mobile-alt text-2xl mb-2 text-blue-500"></i>
+                                                    <span class="font-medium">MTN Mobile</span>
+                                                </div>
+                                            </label>
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="operator" class="sr-only peer">
+                                                <div class="flex flex-col items-center p-4 rounded-lg border-2 peer-checked:border-primary peer-checked:bg-primary/5 transition-all dark:border-gray-700">
+                                                    <i class="fas fa-mobile-alt text-2xl mb-2 text-green-500"></i>
+                                                    <span class="font-medium">Moov Money</span>
+                                                </div>
+                                            </label>
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="operator" class="sr-only peer">
+                                                <div class="flex flex-col items-center p-4 rounded-lg border-2 peer-checked:border-primary peer-checked:bg-primary/5 transition-all dark:border-gray-700">
+                                                    <i class="fas fa-mobile-alt text-2xl mb-2 text-purple-500"></i>
+                                                    <span class="font-medium">Wave</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Numéro Mobile Money</label>
+                                            <input type="tel" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Ex: 076543210">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Montant (en $)</label>
+                                            <input type="number" min="50" step="10" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Minimum 50 $">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Le montant minimum de dépôt est de 50 $</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Votre nom sur le compte Mobile Money</label>
+                                        <input type="text" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Nom sur le compte Mobile Money">
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Remarque (optionnel)</label>
+                                        <textarea class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" rows="3" placeholder="Ajouter une note à ce dépôt"></textarea>
+                                    </div>
+                                    
+                                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                                        <p class="text-blue-800 dark:text-blue-300 flex items-start">
+                                            <i class="fas fa-info-circle mt-1 mr-2"></i>
+                                            <span>Après avoir soumis ce formulaire, vous recevrez une demande de paiement sur votre téléphone. Veuillez confirmer le paiement depuis votre appareil mobile.</span>
+                                        </p>
+                                    </div>
+                                    
+                                    <button type="submit" class="w-full bg-primary hover:bg-secondary text-white py-3 px-6 rounded-lg font-medium transition-all duration-300 shadow-md flex justify-center items-center">
+                                        <i class="fas fa-wallet mr-2"></i>
+                                        Effectuer le dépôt
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 sticky top-24">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-lg mb-4">Mes derniers dépôts</h3>
+                                
+                                <div class="space-y-4">
+                                    <div class="border-b dark:border-gray-700 pb-4">
+                                        <div class="flex justify-between mb-1">
+                                            <span class="font-medium">Orange Money</span>
+                                            <span class="text-success font-medium">+200.00 $</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+                                            <span>15 Août 2023</span>
+                                            <span class="text-green-600 dark:text-green-400">Terminé</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="border-b dark:border-gray-700 pb-4">
+                                        <div class="flex justify-between mb-1">
+                                            <span class="font-medium">Orange Money</span>
+                                            <span class="text-success font-medium">+250.00 $</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+                                            <span>1 Août 2023</span>
+                                            <span class="text-green-600 dark:text-green-400">Terminé</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="pb-4">
+                                        <div class="flex justify-between mb-1">
+                                            <span class="font-medium">MTN Mobile</span>
+                                            <span class="text-success font-medium">+150.00 $</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+                                            <span>15 Juillet 2023</span>
+                                            <span class="text-green-600 dark:text-green-400">Terminé</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <hr class="my-4 border-gray-200 dark:border-gray-700">
+                                
+                                <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                                    <h4 class="font-medium mb-2">Rappel important</h4>
+                                    <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+                                        <li class="flex items-start">
+                                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                            <span>Dépôt minimum: 50 $</span>
+                                        </li>
+                                        <li class="flex items-start">
+                                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                            <span>Les dépôts effectués avant le 15 du mois bénéficient des intérêts du mois en cours</span>
+                                        </li>
+                                        <li class="flex items-start">
+                                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                            <span>Taux d'intérêt mensuel: 10%</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Withdraw section -->
+                <section id="withdraw-section" class="page-section hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-xl mb-6">Demande de retrait</h3>
+                                
+                                <form class="space-y-6">
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Méthode de retrait</label>
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="withdraw-method" class="sr-only peer" checked="">
+                                                <div class="flex flex-col items-center p-4 rounded-lg border-2 peer-checked:border-primary peer-checked:bg-primary/5 transition-all dark:border-gray-700">
+                                                    <i class="fas fa-money-bill-wave text-2xl mb-2 text-green-500"></i>
+                                                    <span class="font-medium">En espèces</span>
+                                                </div>
+                                            </label>
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="withdraw-method" class="sr-only peer">
+                                                <div class="flex flex-col items-center p-4 rounded-lg border-2 peer-checked:border-primary peer-checked:bg-primary/5 transition-all dark:border-gray-700">
+                                                    <i class="fas fa-mobile-alt text-2xl mb-2 text-blue-500"></i>
+                                                    <span class="font-medium">Mobile Money</span>
+                                                </div>
+                                            </label>
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="withdraw-method" class="sr-only peer">
+                                                <div class="flex flex-col items-center p-4 rounded-lg border-2 peer-checked:border-primary peer-checked:bg-primary/5 transition-all dark:border-gray-700">
+                                                    <i class="fas fa-university text-2xl mb-2 text-purple-500"></i>
+                                                    <span class="font-medium">Virement bancaire</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="mobile-money-fields" class="space-y-6 hidden">
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Opérateur Mobile Money</label>
+                                            <select class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                                <option value="orange">Orange Money</option>
+                                                <option value="mtn">MTN Mobile</option>
+                                                <option value="moov">Moov Money</option>
+                                                <option value="wave">Wave</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Numéro Mobile Money</label>
+                                            <input type="tel" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Ex: 076543210">
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="bank-fields" class="space-y-6 hidden">
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Nom de la banque</label>
+                                            <input type="text" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Ex: Banque Nationale">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Numéro de compte</label>
+                                            <input type="text" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Ex: 0012345678901">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Nom du titulaire</label>
+                                            <input type="text" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Nom complet du titulaire">
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="cash-fields">
+                                        <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-100 dark:border-yellow-800">
+                                            <p class="text-yellow-800 dark:text-yellow-300 flex items-start">
+                                                <i class="fas fa-info-circle mt-1 mr-2"></i>
+                                                <span>Le retrait en espèces nécessite une visite à l'une de nos agences. Veuillez vous munir d'une pièce d'identité.</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Montant à retirer (en $)</label>
+                                        <input type="number" min="10" step="10" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Entrez le montant">
+                                        <p class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            <span>Montant minimum: 10 $</span>
+                                            <span>Solde disponible: 1,250.00 $</span>
+                                        </p>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Motif du retrait (optionnel)</label>
+                                        <textarea class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" rows="3" placeholder="Précisez le motif de ce retrait"></textarea>
+                                    </div>
+                                    
+                                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                                        <p class="text-blue-800 dark:text-blue-300 flex items-start">
+                                            <i class="fas fa-info-circle mt-1 mr-2"></i>
+                                            <span>Les demandes de retrait sont traitées dans un délai de 24 à 48 heures ouvrables.</span>
+                                        </p>
+                                    </div>
+                                    
+                                    <button type="submit" class="w-full bg-primary hover:bg-secondary text-white py-3 px-6 rounded-lg font-medium transition-all duration-300 shadow-md flex justify-center items-center">
+                                        <i class="fas fa-money-bill-wave mr-2"></i>
+                                        Soumettre la demande de retrait
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 sticky top-24">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-lg mb-4">Mes derniers retraits</h3>
+                                
+                                <div class="space-y-4">
+                                    <div class="border-b dark:border-gray-700 pb-4">
+                                        <div class="flex justify-between mb-1">
+                                            <span class="font-medium">En espèces</span>
+                                            <span class="text-danger font-medium">-100.00 $</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+                                            <span>5 Août 2023</span>
+                                            <span class="text-green-600 dark:text-green-400">Terminé</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="border-b dark:border-gray-700 pb-4">
+                                        <div class="flex justify-between mb-1">
+                                            <span class="font-medium">En espèces</span>
+                                            <span class="text-danger font-medium">-100.00 $</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+                                            <span>15 Juillet 2023</span>
+                                            <span class="text-green-600 dark:text-green-400">Terminé</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="pb-4">
+                                        <div class="flex justify-between mb-1">
+                                            <span class="font-medium">Virement bancaire</span>
+                                            <span class="text-danger font-medium">-200.00 $</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+                                            <span>1 Juillet 2023</span>
+                                            <span class="text-green-600 dark:text-green-400">Terminé</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <hr class="my-4 border-gray-200 dark:border-gray-700">
+                                
+                                <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                                    <h4 class="font-medium mb-2">Informations importantes</h4>
+                                    <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+                                        <li class="flex items-start">
+                                            <i class="fas fa-info-circle text-primary mt-1 mr-2"></i>
+                                            <span>Les retraits en espèces sont disponibles dans toutes nos agences</span>
+                                        </li>
+                                        <li class="flex items-start">
+                                            <i class="fas fa-info-circle text-primary mt-1 mr-2"></i>
+                                            <span>Les frais de retrait via Mobile Money sont de 1%</span>
+                                        </li>
+                                        <li class="flex items-start">
+                                            <i class="fas fa-info-circle text-primary mt-1 mr-2"></i>
+                                            <span>Les virements bancaires peuvent prendre jusqu'à 2 jours ouvrables</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Account Type section -->
+                <section id="account-section" class="page-section hidden space-y-6">
+                    <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6">
+                        <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-xl mb-6">Mon compte épargne</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-5">
+                                <h4 class="text-primary font-semibold mb-4">Informations générales</h4>
+                                <ul class="space-y-3">
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Type de compte</span>
+                                        <span class="font-medium">Épargne classique</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Numéro de compte</span>
+                                        <span class="font-medium">EPG-12587-JD</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Date d'ouverture</span>
+                                        <span class="font-medium">15 Mai 2023</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Statut</span>
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Actif</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-5">
+                                <h4 class="text-primary font-semibold mb-4">Caractéristiques du compte</h4>
+                                <ul class="space-y-3">
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Taux d'intérêt</span>
+                                        <span class="font-medium">10% mensuel</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Dépôt minimum</span>
+                                        <span class="font-medium">50 $</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Date limite dépôt</span>
+                                        <span class="font-medium">Avant le 15 du mois</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Frais de gestion</span>
+                                        <span class="font-medium">Aucun</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-5">
+                                <h4 class="text-primary font-semibold mb-4">Relevé mensuel</h4>
+                                <ul class="space-y-3">
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Solde actuel</span>
+                                        <span class="font-medium">1,250.00 $</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Intérêts du mois</span>
+                                        <span class="font-medium text-success">+50.00 $</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Intérêts cumulés</span>
+                                        <span class="font-medium text-success">+125.00 $</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Prochain versement</span>
+                                        <span class="font-medium">10 Sept 2023</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-8 border-gray-200 dark:border-gray-700">
+                        
+                        <div>
+                            <h4 class="font-semibold text-gray-800 dark:text-gray-200 text-lg mb-4">Description du compte</h4>
+                            
+                            <p class="text-gray-600 dark:text-gray-400 mb-6">
+                                Le compte épargne classique est un compte qui offre aux clients un taux d'intérêts mensuel de 10%, après chaque dépôt effectué du mois en cours avant le 15. La somme minimum pour un dépôt est de 50$. C'est un compte accessible à tous les clients, pas de conditions spécifiques requises.
+                            </p>
+                            
+                            <div class="mt-8">
+                                <h4 class="font-semibold text-gray-800 dark:text-gray-200 text-lg mb-4">Avantages de votre compte</h4>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <div class="flex items-start">
+                                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4 shrink-0">
+                                            <i class="fas fa-percentage text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-medium mb-1">Taux d'intérêt élevé</h5>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Profitez d'un taux d'intérêt mensuel de 10% sur vos dépôts.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-start">
+                                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4 shrink-0">
+                                            <i class="fas fa-shield-alt text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-medium mb-1">Sécurité garantie</h5>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Vos fonds sont sécurisés et garantis à tout moment.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-start">
+                                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4 shrink-0">
+                                            <i class="fas fa-mobile-alt text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-medium mb-1">Dépôts faciles</h5>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Effectuez des dépôts facilement via Mobile Money ou en agence.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-start">
+                                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4 shrink-0">
+                                            <i class="fas fa-money-bill-wave text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-medium mb-1">Retraits flexibles</h5>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Plusieurs options de retrait pour votre convenance.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-start">
+                                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4 shrink-0">
+                                            <i class="fas fa-chart-line text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-medium mb-1">Suivi en temps réel</h5>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Accédez à vos informations de compte en temps réel.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-start">
+                                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4 shrink-0">
+                                            <i class="fas fa-hand-holding-usd text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-medium mb-1">Sans frais cachés</h5>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Aucun frais de maintenance ou de gestion sur votre compte.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Profile section -->
+                <section id="profile-section" class="page-section hidden space-y-6">
+                    <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6">
+                        <div class="flex flex-col md:flex-row gap-8">
+                            <div class="md:w-1/3 lg:w-1/4">
+                                <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 text-center">
+                                    <div class="relative w-32 h-32 mx-auto mb-4">
+                                        <img src="2150312712.jpg" alt="Profile" class="w-full h-full rounded-full object-cover">
+                                        <button class="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-md">
+                                            <i class="fas fa-camera"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <h3 class="text-xl font-bold mb-1">M eric</h3>
+                                    <p class="text-gray-600 dark:text-gray-400 mb-4">Client depuis Mai 2023</p>
+                                    
+                                    <div class="flex justify-center">
+                                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                            Client 
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="md:w-2/3 lg:w-3/4">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-xl mb-6">Informations personnelles</h3>
+                                
+                                <form class="space-y-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Prénom</label>
+                                            <input type="text" value="ERIC" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Nom</label>
+                                            <input type="text" value="Dupont" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Email</label>
+                                            <input type="email" value="eric.dupont@example.com" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Téléphone</label>
+                                            <input type="tel" value="+123 456 7890" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Date de naissance</label>
+                                            <input type="date" value="1985-06-15" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Profession</label>
+                                            <input type="text" value="Ingénieur logiciel" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Adresse</label>
+                                        <input type="text" value="123 Rue de la République" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary mb-3">
+                                        
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                            <input type="text" value="Paris" placeholder="Ville" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                            <input type="text" value="Île-de-France" placeholder="État/Province" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                            <input type="text" value="75001" placeholder="Code postal" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                    </div>
+                                    
+                                    <hr class="border-gray-200 dark:border-gray-700">
+                                    
+                                    <h4 class="font-semibold text-gray-800 dark:text-gray-200 text-lg">Sécurité</h4>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Mot de passe actuel</label>
+                                            <input type="password" placeholder="••••••••" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Nouveau mot de passe</label>
+                                            <input type="password" placeholder="••••••••" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Confirmer le mot de passe</label>
+                                            <input type="password" placeholder="••••••••" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Authentification à deux facteurs</label>
+                                            <div class="flex items-center">
+                                                <label class="relative inline-flex items-center cursor-pointer">
+                                                    <input type="checkbox" class="sr-only peer" checked="">
+                                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                                                    <span class="ml-3 text-sm text-gray-700 dark:text-gray-300">Activé</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                                        <p class="text-blue-800 dark:text-blue-300 flex items-start text-sm">
+                                            <i class="fas fa-info-circle mt-1 mr-2"></i>
+                                            <span>Pour votre sécurité, nous vous recommandons de changer votre mot de passe régulièrement et d'activer l'authentification à deux facteurs.</span>
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="flex justify-end space-x-4">
+                                        <button type="button" class="px-6 py-3 rounded-lg border dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all">
+                                            Annuler
+                                        </button>
+                                        <button type="submit" class="px-6 py-3 rounded-lg bg-primary hover:bg-secondary text-white font-medium transition-all duration-300 shadow-md">
+                                            Enregistrer les modifications
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Scripts -->
+    <script>
+        // Initialize charts when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle dark mode
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            
+            // Check for saved dark mode preference or use system preference
+            if (localStorage.getItem('darkMode') === 'enabled' || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && localStorage.getItem('darkMode') !== 'disabled')) {
+                document.documentElement.classList.add('dark');
+            }
+            
+            darkModeToggle.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+                
+                if (document.documentElement.classList.contains('dark')) {
+                    localStorage.setItem('darkMode', 'enabled');
+                } else {
+                    localStorage.setItem('darkMode', 'disabled');
+                }
+                
+                // Update charts when theme changes
+                updateCharts();
+            });
+            
+            // Listen for system preference changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                if (localStorage.getItem('darkMode') === null) {
+                    if (e.matches) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                    // Update charts when theme changes
+                    updateCharts();
+                }
+            });
+            
+            // Mobile menu
+            const toggleSidebar = document.getElementById('toggle-sidebar');
+            const closeSidebar = document.getElementById('close-sidebar');
+            const sidebar = document.querySelector('.sidebar');
+            
+            toggleSidebar.addEventListener('click', () => {
+                sidebar.classList.add('open');
+            });
+            
+            closeSidebar.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+            });
+            
+            // Profile dropdown
+            const profileDropdown = document.getElementById('profile-dropdown');
+            const dropdownMenu = profileDropdown.querySelector('.dropdown-menu');
+            
+            profileDropdown.addEventListener('click', () => {
+                dropdownMenu.classList.toggle('hidden');
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!profileDropdown.contains(e.target)) {
+                    dropdownMenu.classList.add('hidden');
+                }
+            });
+            
+            // Navigation
+            const navLinks = document.querySelectorAll('.nav-link');
+            const pageSections = document.querySelectorAll('.page-section');
+            const pageTitle = document.getElementById('page-title');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    // Get the target section ID
+                    const targetId = link.getAttribute('href').substring(1);
+                    const targetSection = document.getElementById(`${targetId}-section`);
+                    
+                    // Hide all sections and remove active class from all links
+                    pageSections.forEach(section => section.classList.add('hidden'));
+                    navLinks.forEach(navLink => {
+                        navLink.classList.remove('active', 'bg-gray-100', 'dark:bg-gray-800', 'text-primary');
+                        navLink.classList.add('text-gray-700', 'dark:text-gray-300', 'hover:bg-gray-100', 'dark:hover:bg-gray-800');
+                    });
+                    
+                    // Show target section and set link as active
+                    targetSection.classList.remove('hidden');
+                    targetSection.classList.add('fade-in');
+                    link.classList.add('active', 'bg-gray-100', 'dark:bg-gray-800', 'text-primary');
+                    link.classList.remove('text-gray-700', 'dark:text-gray-300', 'hover:bg-gray-100', 'dark:hover:bg-gray-800');
+                    
+                    // Update page title
+                    pageTitle.textContent = link.querySelector('span').textContent;
+                    
+                    // Close sidebar on mobile
+                    if (window.innerWidth < 1024) {
+                        sidebar.classList.remove('open');
+                    }
+                    
+                    // Scroll to top
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            });
+            
+            // Withdraw method selection
+            const withdrawMethodRadios = document.querySelectorAll('input[name="withdraw-method"]');
+            const mobileMoneySections = document.getElementById('mobile-money-fields');
+            const bankFields = document.getElementById('bank-fields');
+            const cashFields = document.getElementById('cash-fields');
+            
+            withdrawMethodRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    const method = radio.parentElement.querySelector('span').textContent.trim();
+                    
+                    // Hide all method-specific fields
+                    mobileMoneySections.classList.add('hidden');
+                    bankFields.classList.add('hidden');
+                    cashFields.classList.add('hidden');
+                    
+                    // Show the relevant fields based on the selected method
+                    if (method === 'Mobile Money') {
+                        mobileMoneySections.classList.remove('hidden');
+                    } else if (method === 'Virement bancaire') {
+                        bankFields.classList.remove('hidden');
+                    } else if (method === 'En espèces') {
+                        cashFields.classList.remove('hidden');
+                    }
+                });
+            });
+            
+            // Period buttons for charts
+            const periodBtns = document.querySelectorAll('.period-btn');
+            
+            periodBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    periodBtns.forEach(b => {
+                        b.classList.remove('active', 'bg-primary', 'text-white');
+                        b.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                    });
+                    
+                    // Add active class to clicked button
+                    btn.classList.add('active', 'bg-primary', 'text-white');
+                    btn.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                    
+                    // Update charts based on the selected period
+                    // For demonstration purposes, we'll just regenerate the charts
+                    updateCharts();
+                });
+            });
+            
+            // Initialize charts
+            initCharts();
+        });
+        
+        // Initialize charts
+        function initCharts() {
+            // Balance chart
+            const balanceCtx = document.getElementById('balanceChart').getContext('2d');
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            const textColor = isDarkMode ? '#E5E5E5' : '#1F2937';
+            
+            // Sample data for balance chart
+            const balanceData = {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+                datasets: [{
+                    label: 'Solde',
+                    data: [800, 850, 900, 950, 1000, 1050, 1100, 1250],
+                    borderColor: '#5D5CDE',
+                    backgroundColor: 'rgba(93, 92, 222, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            };
+            
+            window.balanceChart = new Chart(balanceCtx, {
+                type: 'line',
+                data: balanceData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: isDarkMode ? '#262626' : '#FFFFFF',
+                            titleColor: textColor,
+                            bodyColor: textColor,
+                            borderColor: gridColor,
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y} $`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: textColor
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor,
+                                callback: function(value) {
+                                    return value + ' $';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Transaction chart (doughnut)
+            const transactionCtx = document.getElementById('transactionChart').getContext('2d');
+            
+            // Sample data for transaction chart
+            const transactionData = {
+                labels: ['Dépôts', 'Intérêts', 'Retraits', 'Frais'],
+                datasets: [{
+                    data: [450, 125, 200, 5],
+                    backgroundColor: [
+                        '#5D5CDE', // primary
+                        '#818CF8', // tertiary
+                        '#EF4444', // danger
+                        '#F59E0B'  // warning
+                    ],
+                    borderWidth: 0
+                }]
+            };
+            
+            window.transactionChart = new Chart(transactionCtx, {
+                type: 'doughnut',
+                data: transactionData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: isDarkMode ? '#262626' : '#FFFFFF',
+                            titleColor: textColor,
+                            bodyColor: textColor,
+                            borderColor: gridColor,
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.parsed} $`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update charts when theme changes
+        function updateCharts() {
+            if (window.balanceChart && window.transactionChart) {
+                const isDarkMode = document.documentElement.classList.contains('dark');
+                const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                const textColor = isDarkMode ? '#E5E5E5' : '#1F2937';
+                
+                // Update balance chart
+                window.balanceChart.options.plugins.tooltip.backgroundColor = isDarkMode ? '#262626' : '#FFFFFF';
+                window.balanceChart.options.plugins.tooltip.titleColor = textColor;
+                window.balanceChart.options.plugins.tooltip.bodyColor = textColor;
+                window.balanceChart.options.plugins.tooltip.borderColor = gridColor;
+                window.balanceChart.options.scales.x.ticks.color = textColor;
+                window.balanceChart.options.scales.y.ticks.color = textColor;
+                window.balanceChart.options.scales.y.grid.color = gridColor;
+                window.balanceChart.update();
+                
+                // Update transaction chart
+                window.transactionChart.options.plugins.tooltip.backgroundColor = isDarkMode ? '#262626' : '#FFFFFF';
+                window.transactionChart.options.plugins.tooltip.titleColor = textColor;
+                window.transactionChart.options.plugins.tooltip.bodyColor = textColor;
+                window.transactionChart.options.plugins.tooltip.borderColor = gridColor;
+                window.transactionChart.update();
+            }
+        }
+    </script>
+
+
+</body></html>

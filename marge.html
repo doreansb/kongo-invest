@@ -1,0 +1,2288 @@
+<!DOCTYPE html><html lang="fr"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BankConnect - Espace Compte Marge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        secondary: '#4F46E5',
+                        tertiary: '#818CF8',
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
+                        cyan: '#06B6D4',
+                        purple: '#8B5CF6',
+                        dark: {
+                            bg: '#181818',
+                            card: '#262626',
+                            sidebar: '#1E1E2D',
+                            text: '#E5E5E5'
+                        },
+                        light: {
+                            bg: '#F9FAFB',
+                            card: '#FFFFFF',
+                            text: '#1F2937'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            overflow-x: hidden;
+        }
+        
+        /* Layout Styles */
+        .app-container {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            transition: all 0.3s ease;
+        }
+        
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100%;
+                z-index: 50;
+                transition: all 0.3s ease;
+            }
+            
+            .sidebar.active {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        /* Progress indicator */
+        .progress-bar {
+            height: 6px;
+            border-radius: 3px;
+            background: #E5E7EB;
+            overflow: hidden;
+        }
+        
+        .progress-bar .progress {
+            height: 100%;
+            border-radius: 3px;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(93, 92, 222, 0.6);
+            border-radius: 10px;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background: rgba(93, 92, 222, 0.8);
+        }
+        
+        /* Animations */
+        .scale-in {
+            animation: scaleIn 0.3s ease-out;
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .dark .tooltip .tooltip-text {
+            background-color: #1E1E2D;
+        }
+        
+        .dark .tooltip .tooltip-text::after {
+            border-color: #1E1E2D transparent transparent transparent;
+        }
+    </style>
+</head>
+<body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text transition-all duration-300">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white dark:bg-dark-sidebar shadow-lg h-screen w-64 fixed lg:relative z-50 transition-all">
+            <div class="flex flex-col h-full">
+                <!-- Sidebar Header -->
+                <div class="p-4 flex items-center justify-between border-b dark:border-gray-700">
+                    <div class="flex items-center">
+                       
+                        <h1 class="text-xl font-bold"><img src="Kongo Invest.png" alt="" width="100px"></h1>
+                    </div>
+                    <button id="close-sidebar" class="lg:hidden text-gray-500 dark:text-gray-400 hover:text-primary">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Sidebar Content -->
+                <div class="flex-1 overflow-y-auto">
+                    <div class="p-4">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold mb-4">Menu Principal</p>
+                        <ul class="space-y-2">
+                            <li>
+                                <a href="#dashboard" class="nav-link active flex items-center p-3 rounded-lg text-primary bg-primary/10 dark:bg-primary/20 font-medium transition-all">
+                                    <i class="fas fa-chart-line w-5 mr-3"></i>
+                                    <span>Tableau de bord</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#transactions" class="nav-link flex items-center p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all">
+                                    <i class="fas fa-exchange-alt w-5 mr-3"></i>
+                                    <span>Transactions</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#deposit" class="nav-link flex items-center p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all">
+                                    <i class="fas fa-wallet w-5 mr-3"></i>
+                                    <span>Dépôt</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#withdraw" class="nav-link flex items-center p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all">
+                                    <i class="fas fa-money-bill-wave w-5 mr-3"></i>
+                                    <span>Retrait</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#margin-account" class="nav-link flex items-center p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all">
+                                    <i class="fas fa-piggy-bank w-5 mr-3"></i>
+                                    <span>Compte Marge</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#interests" class="nav-link flex items-center p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all">
+                                    <i class="fas fa-percentage w-5 mr-3"></i>
+                                    <span>Mes Intérêts</span>
+                                </a>
+                            </li>
+                        </ul>
+                        
+                        <hr class="my-6 border-gray-200 dark:border-gray-700">
+                        
+                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold mb-4">Paramètres</p>
+                        <ul class="space-y-2">
+                            <li>
+                                <a href="#profile" class="nav-link flex items-center p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all">
+                                    <i class="fas fa-user-circle w-5 mr-3"></i>
+                                    <span>Profil</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#settings" class="flex items-center p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all">
+                                    <i class="fas fa-cog w-5 mr-3"></i>
+                                    <span>Paramètres</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Sidebar Footer -->
+                <div class="p-4 border-t dark:border-gray-700">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 font-medium transition-all">
+                        <i class="fas fa-sign-out-alt w-5 mr-3"></i>
+                        <span>Déconnexion</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content w-full min-h-screen transition-all">
+            <!-- Header -->
+            <header class="bg-white dark:bg-dark-card shadow-md py-4 px-6 flex justify-between items-center sticky top-0 z-10">
+                <div class="flex items-center">
+                    <button id="toggle-sidebar" class="mr-4 text-gray-500 dark:text-gray-400 hover:text-primary lg:hidden">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h2 class="text-xl font-bold" id="page-title">Tableau de bord</h2>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Dark mode toggle -->
+                    <button id="dark-mode-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                        <i class="fas fa-moon dark:hidden text-gray-600"></i>
+                        <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+                    </button>
+                    
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                            <i class="fas fa-bell text-gray-600 dark:text-gray-400"></i>
+                            <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+                    </div>
+                    
+                    <!-- Profile dropdown -->
+                    <div class="relative" id="profile-dropdown">
+                        <button class="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full p-1 transition-all">
+                            <img src="129403.jpg" alt="Profile" class="w-8 h-8 rounded-full object-cover">
+                            <span class="ml-2 font-medium hidden sm:block">Maman jolie</span>
+                            <i class="fas fa-chevron-down ml-2 text-xs text-gray-500 dark:text-gray-400 hidden sm:block"></i>
+                        </button>
+                        
+                        <div class="dropdown-menu absolute right-0 top-full mt-2 w-48 bg-white dark:bg-dark-card rounded-lg shadow-lg py-2 hidden z-20">
+                            <a href="#profile" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                                <i class="fas fa-user-circle mr-2"></i>
+                                Profil
+                            </a>
+                            <a href="#settings" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                                <i class="fas fa-cog mr-2"></i>
+                                Paramètres
+                            </a>
+                            <hr class="my-1 border-gray-200 dark:border-gray-700">
+                            <a href="#" class="block px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
+                                <i class="fas fa-sign-out-alt mr-2"></i>
+                                Déconnexion
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content sections -->
+            <div class="p-6">
+                <!-- Dashboard section -->
+                <section id="dashboard-section" class="page-section space-y-6 animate-fade-in">
+                    <!-- Account summary cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 scale-in">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm">Solde disponible</p>
+                                    <h3 class="text-2xl font-bold mt-1">1,500.00 $</h3>
+                                    <p class="text-success text-sm flex items-center mt-2">
+                                        <i class="fas fa-arrow-up mr-1"></i>
+                                        <span>+500$ ce mois</span>
+                                    </p>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                    <i class="fas fa-wallet text-primary"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 scale-in" style="animation-delay: 0.1s">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm">Marge disponible</p>
+                                    <h3 class="text-2xl font-bold mt-1">6,000.00 $</h3>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm flex items-center mt-2">
+                                        <i class="fas fa-arrows-alt-h mr-1"></i>
+                                        <span>Levier 1:4</span>
+                                    </p>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-cyan/10 flex items-center justify-center">
+                                    <i class="fas fa-hand-holding-usd text-cyan"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 scale-in" style="animation-delay: 0.2s">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm">Intérêts cumulés</p>
+                                    <h3 class="text-2xl font-bold mt-1">250.00 $</h3>
+                                    <p class="text-success text-sm flex items-center mt-2">
+                                        <i class="fas fa-arrow-up mr-1"></i>
+                                        <span>+50$ le mois dernier</span>
+                                    </p>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                                    <i class="fas fa-percentage text-green-500"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 scale-in" style="animation-delay: 0.3s">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm">Type de compte</p>
+                                    <h3 class="text-xl font-bold mt-1">CMFSM</h3>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm flex items-center mt-2">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        <span>Financement soins médicaux</span>
+                                    </p>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-purple/10 flex items-center justify-center">
+                                    <i class="fas fa-hospital-user text-purple"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Leverage & Deposit Progress -->
+                    <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 scale-in">
+                        <div class="flex flex-col lg:flex-row gap-6">
+                            <div class="w-full lg:w-1/2">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="font-semibold text-gray-800 dark:text-gray-200">Progression vers la marge maximale</h3>
+                                    <div class="tooltip">
+                                        <i class="fas fa-question-circle text-gray-400"></i>
+                                        <span class="tooltip-text text-xs">Progression de votre dépôt actuel vers la plage de dépôt maximale qui vous donnerait accès à un levier supérieur.</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-white dark:bg-dark-card shadow-sm rounded-lg p-6 border dark:border-gray-700">
+                                    <div class="flex justify-between mb-2">
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">Dépôt actuel: <strong>1,500 $</strong></span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">Objectif: <strong>2,000 $</strong></span>
+                                    </div>
+                                    
+                                    <div class="progress-bar mb-4">
+                                        <div class="progress bg-primary" style="width: 75%"></div>
+                                    </div>
+                                    
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Levier actuel</p>
+                                            <p class="text-xl font-bold text-primary">1:4</p>
+                                        </div>
+                                        
+                                        <div class="flex items-center">
+                                            <i class="fas fa-arrow-right text-gray-400 mx-3"></i>
+                                        </div>
+                                        
+                                        <div>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Prochain levier</p>
+                                            <p class="text-xl font-bold text-cyan">1:5</p>
+                                        </div>
+                                        
+                                        <div class="bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-lg">
+                                            <p class="text-xs text-gray-600 dark:text-gray-400">Dépôt requis</p>
+                                            <p class="text-lg font-bold text-primary">+500 $</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="w-full lg:w-1/2">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="font-semibold text-gray-800 dark:text-gray-200">Utilisation de la marge</h3>
+                                    <div class="tooltip">
+                                        <i class="fas fa-question-circle text-gray-400"></i>
+                                        <span class="tooltip-text text-xs">Montant de votre marge actuellement utilisée par rapport à la marge totale disponible.</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-white dark:bg-dark-card shadow-sm rounded-lg p-6 border dark:border-gray-700">
+                                    <div class="chart-container" style="height: 200px">
+                                        <canvas id="marginUsageChart"></canvas>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-4 mt-4">
+                                        <div class="text-center">
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Marge disponible</p>
+                                            <p class="text-xl font-bold text-primary">6,000 $</p>
+                                        </div>
+                                        <div class="text-center">
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Marge utilisée</p>
+                                            <p class="text-xl font-bold text-purple">2,400 $</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 lg:col-span-2 scale-in">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200">Évolution du solde et marge</h3>
+                                <div class="flex items-center space-x-2">
+                                    <button class="period-btn active px-3 py-1 text-xs font-medium rounded-full bg-primary text-white">1M</button>
+                                    <button class="period-btn px-3 py-1 text-xs font-medium rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">3M</button>
+                                    <button class="period-btn px-3 py-1 text-xs font-medium rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">6M</button>
+                                    <button class="period-btn px-3 py-1 text-xs font-medium rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">1A</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="balanceChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 scale-in">
+                            <h3 class="font-semibold text-gray-800 dark:text-gray-200 mb-6">Intérêts mensuels</h3>
+                            <div class="chart-container">
+                                <canvas id="interestChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent transactions -->
+                    <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 scale-in">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-semibold text-gray-800 dark:text-gray-200">Transactions récentes</h3>
+                            <a href="#transactions" class="text-primary text-sm hover:underline">Voir tout</a>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b dark:border-gray-700">
+                                        <th class="text-left py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Date</th>
+                                        <th class="text-left py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Type</th>
+                                        <th class="text-left py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Description</th>
+                                        <th class="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Montant</th>
+                                        <th class="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Solde</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-2">18 Août 2023</td>
+                                        <td class="py-3 px-2">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Dépôt</span>
+                                        </td>
+                                        <td class="py-3 px-2">Dépôt trimestriel</td>
+                                        <td class="py-3 px-2 text-right text-success">+500.00 $</td>
+                                        <td class="py-3 px-2 text-right font-medium">1,500.00 $</td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-2">15 Août 2023</td>
+                                        <td class="py-3 px-2">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">Marge</span>
+                                        </td>
+                                        <td class="py-3 px-2">Utilisation marge médicale</td>
+                                        <td class="py-3 px-2 text-right text-purple-600">-800.00 $</td>
+                                        <td class="py-3 px-2 text-right font-medium">1,000.00 $</td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-2">12 Août 2023</td>
+                                        <td class="py-3 px-2">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Intérêt</span>
+                                        </td>
+                                        <td class="py-3 px-2">Intérêts trimestriels</td>
+                                        <td class="py-3 px-2 text-right text-success">+50.00 $</td>
+                                        <td class="py-3 px-2 text-right font-medium">1,800.00 $</td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-2">1 Août 2023</td>
+                                        <td class="py-3 px-2">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">Marge</span>
+                                        </td>
+                                        <td class="py-3 px-2">Remboursement marge</td>
+                                        <td class="py-3 px-2 text-right text-success">+400.00 $</td>
+                                        <td class="py-3 px-2 text-right font-medium">1,750.00 $</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Upcoming Payments & Next Steps -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 scale-in">
+                            <h3 class="font-semibold text-gray-800 dark:text-gray-200 mb-4">Échéances à venir</h3>
+                            
+                            <ul class="space-y-4">
+                                <li class="flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4">
+                                        <i class="fas fa-calendar-alt text-primary"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="font-medium">Dépôt trimestriel</h4>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">Prochain dépôt recommandé: 500$</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-medium">15 Sep 2023</p>
+                                        <p class="text-sm text-primary">Dans 28 jours</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                    <div class="w-10 h-10 rounded-full bg-purple/10 flex items-center justify-center mr-4">
+                                        <i class="fas fa-hand-holding-medical text-purple"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="font-medium">Remboursement marge médicale</h4>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">Remboursement partiel: 400$</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-medium">30 Sep 2023</p>
+                                        <p class="text-sm text-primary">Dans 43 jours</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                    <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mr-4">
+                                        <i class="fas fa-percentage text-blue-500"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="font-medium">Prochain versement d'intérêts</h4>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">Estimation: ~60$</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-medium">15 Oct 2023</p>
+                                        <p class="text-sm text-primary">Dans 58 jours</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 scale-in">
+                            <h3 class="font-semibold text-gray-800 dark:text-gray-200 mb-4">Actions recommandées</h3>
+                            
+                            <ul class="space-y-4">
+                                <li class="flex p-3 bg-primary/5 dark:bg-primary/10 rounded-lg border-l-4 border-primary">
+                                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4">
+                                        <i class="fas fa-arrow-up text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium">Augmentez votre levier</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Déposez 500$ supplémentaires pour passer au levier 1:5 et augmenter votre marge disponible à 7,500$.</p>
+                                        <a href="#deposit" class="text-primary text-sm font-medium hover:underline">Faire un dépôt</a>
+                                    </div>
+                                </li>
+                                <li class="flex p-3 bg-cyan/5 dark:bg-cyan/10 rounded-lg border-l-4 border-cyan">
+                                    <div class="w-10 h-10 rounded-full bg-cyan/10 flex items-center justify-center mr-4">
+                                        <i class="fas fa-chart-line text-cyan"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium">Optimisez vos intérêts</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">En maintenant un dépôt régulier avant chaque fin de trimestre, vous maximisez vos gains d'intérêts.</p>
+                                        <a href="#interests" class="text-cyan text-sm font-medium hover:underline">Calculer mes intérêts</a>
+                                    </div>
+                                </li>
+                                <li class="flex p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                    <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center mr-4">
+                                        <i class="fas fa-file-alt text-gray-500"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium">Complétez votre profil</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Ajoutez vos informations médicales pour un accès plus rapide aux services de santé liés à votre compte CMFSM.</p>
+                                        <a href="#profile" class="text-gray-500 text-sm font-medium hover:underline">Mettre à jour mon profil</a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Transactions section -->
+                <section id="transactions-section" class="page-section hidden space-y-6">
+                    <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6">
+                        <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+                            <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-xl">Historique des transactions</h3>
+                            
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <div class="relative">
+                                    <input type="text" class="pl-10 pr-4 py-2 border dark:border-gray-700 rounded-lg w-full bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Rechercher...">
+                                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                                
+                                <select class="border dark:border-gray-700 rounded-lg px-4 py-2 bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="all">Tous les types</option>
+                                    <option value="deposit">Dépôts</option>
+                                    <option value="margin">Opérations de marge</option>
+                                    <option value="interest">Intérêts</option>
+                                    <option value="withdrawal">Retraits</option>
+                                </select>
+                                
+                                <select class="border dark:border-gray-700 rounded-lg px-4 py-2 bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="30">30 derniers jours</option>
+                                    <option value="90">3 derniers mois</option>
+                                    <option value="180">6 derniers mois</option>
+                                    <option value="365">12 derniers mois</option>
+                                    <option value="all">Toutes les dates</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b dark:border-gray-700">
+                                        <th class="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">#Réf</th>
+                                        <th class="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Date</th>
+                                        <th class="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Type</th>
+                                        <th class="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Description</th>
+                                        <th class="text-right py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Montant</th>
+                                        <th class="text-right py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Solde</th>
+                                        <th class="text-center py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">État</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-4 font-medium">#TR-8102</td>
+                                        <td class="py-3 px-4">18 Août 2023</td>
+                                        <td class="py-3 px-4">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Dépôt</span>
+                                        </td>
+                                        <td class="py-3 px-4">Dépôt trimestriel</td>
+                                        <td class="py-3 px-4 text-right text-success">+500.00 $</td>
+                                        <td class="py-3 px-4 text-right font-medium">1,500.00 $</td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Terminé</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-4 font-medium">#TR-8101</td>
+                                        <td class="py-3 px-4">15 Août 2023</td>
+                                        <td class="py-3 px-4">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">Marge</span>
+                                        </td>
+                                        <td class="py-3 px-4">Utilisation marge médicale</td>
+                                        <td class="py-3 px-4 text-right text-purple-600">-800.00 $</td>
+                                        <td class="py-3 px-4 text-right font-medium">1,000.00 $</td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Terminé</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-4 font-medium">#TR-8100</td>
+                                        <td class="py-3 px-4">12 Août 2023</td>
+                                        <td class="py-3 px-4">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Intérêt</span>
+                                        </td>
+                                        <td class="py-3 px-4">Intérêts trimestriels</td>
+                                        <td class="py-3 px-4 text-right text-success">+50.00 $</td>
+                                        <td class="py-3 px-4 text-right font-medium">1,800.00 $</td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Terminé</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-4 font-medium">#TR-8099</td>
+                                        <td class="py-3 px-4">1 Août 2023</td>
+                                        <td class="py-3 px-4">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">Marge</span>
+                                        </td>
+                                        <td class="py-3 px-4">Remboursement marge</td>
+                                        <td class="py-3 px-4 text-right text-success">+400.00 $</td>
+                                        <td class="py-3 px-4 text-right font-medium">1,750.00 $</td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Terminé</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-4 font-medium">#TR-8098</td>
+                                        <td class="py-3 px-4">20 Juillet 2023</td>
+                                        <td class="py-3 px-4">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">Marge</span>
+                                        </td>
+                                        <td class="py-3 px-4">Utilisation marge médicale</td>
+                                        <td class="py-3 px-4 text-right text-purple-600">-1,200.00 $</td>
+                                        <td class="py-3 px-4 text-right font-medium">1,350.00 $</td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Terminé</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-4 font-medium">#TR-8097</td>
+                                        <td class="py-3 px-4">15 Juillet 2023</td>
+                                        <td class="py-3 px-4">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Retrait</span>
+                                        </td>
+                                        <td class="py-3 px-4">Retrait partiel</td>
+                                        <td class="py-3 px-4 text-right text-danger">-200.00 $</td>
+                                        <td class="py-3 px-4 text-right font-medium">2,550.00 $</td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Terminé</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                                        <td class="py-3 px-4 font-medium">#TR-8096</td>
+                                        <td class="py-3 px-4">1 Juillet 2023</td>
+                                        <td class="py-3 px-4">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">Marge</span>
+                                        </td>
+                                        <td class="py-3 px-4">Remboursement marge</td>
+                                        <td class="py-3 px-4 text-right text-success">+300.00 $</td>
+                                        <td class="py-3 px-4 text-right font-medium">2,750.00 $</td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Terminé</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <div class="flex justify-between items-center mt-6">
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Affichage de 1 à 7 sur 22 entrées</p>
+                            
+                            <div class="flex space-x-2">
+                                <button class="px-3 py-1 rounded border dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50" disabled="">Précédent</button>
+                                <button class="px-3 py-1 rounded border dark:border-gray-700 bg-primary text-white">1</button>
+                                <button class="px-3 py-1 rounded border dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">2</button>
+                                <button class="px-3 py-1 rounded border dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">3</button>
+                                <button class="px-3 py-1 rounded border dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">Suivant</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Deposit section -->
+                <section id="deposit-section" class="page-section hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-xl mb-6">Dépôt sur compte marge</h3>
+                                
+                                <!-- Alert about deposit benefits -->
+                                <div class="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg border border-primary/20 mb-6">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-info-circle text-primary mt-0.5"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-primary">Atteindre un levier supérieur</h3>
+                                            <div class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                                                <p>Vous êtes actuellement à <strong>1,500$</strong> de dépôt. En déposant <strong>500$</strong> supplémentaires, vous passerez au levier <strong>1:5</strong>, augmentant votre marge disponible à <strong>7,500$</strong>.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <form class="space-y-6">
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Opérateur Mobile Money</label>
+                                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="operator" class="sr-only peer" checked="">
+                                                <div class="flex flex-col items-center p-4 rounded-lg border-2 peer-checked:border-primary peer-checked:bg-primary/5 transition-all dark:border-gray-700">
+                                                    <i class="fas fa-mobile-alt text-2xl mb-2 text-orange-500"></i>
+                                                    <span class="font-medium">Orange Money</span>
+                                                </div>
+                                            </label>
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="operator" class="sr-only peer">
+                                                <div class="flex flex-col items-center p-4 rounded-lg border-2 peer-checked:border-primary peer-checked:bg-primary/5 transition-all dark:border-gray-700">
+                                                    <i class="fas fa-mobile-alt text-2xl mb-2 text-blue-500"></i>
+                                                    <span class="font-medium">MTN Mobile</span>
+                                                </div>
+                                            </label>
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="operator" class="sr-only peer">
+                                                <div class="flex flex-col items-center p-4 rounded-lg border-2 peer-checked:border-primary peer-checked:bg-primary/5 transition-all dark:border-gray-700">
+                                                    <i class="fas fa-mobile-alt text-2xl mb-2 text-green-500"></i>
+                                                    <span class="font-medium">Moov Money</span>
+                                                </div>
+                                            </label>
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="operator" class="sr-only peer">
+                                                <div class="flex flex-col items-center p-4 rounded-lg border-2 peer-checked:border-primary peer-checked:bg-primary/5 transition-all dark:border-gray-700">
+                                                    <i class="fas fa-mobile-alt text-2xl mb-2 text-purple-500"></i>
+                                                    <span class="font-medium">Wave</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Numéro Mobile Money</label>
+                                            <input type="tel" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Ex: 076543210">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Montant (en $)</label>
+                                            <div class="relative">
+                                                <input type="number" value="500" min="50" step="50" class="w-full p-3 pl-10 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Minimum 300 $">
+                                                <div class="absolute inset-y-0 left-0 flex items-center pl-3">
+                                                    <span class="text-gray-500 dark:text-gray-400">$</span>
+                                                </div>
+                                            </div>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Montant min. pour votre compte CMFSM: 300 $</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Votre nom sur le compte Mobile Money</label>
+                                        <input type="text" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Nom sur le compte Mobile Money">
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Remarque (optionnel)</label>
+                                        <textarea class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" rows="3" placeholder="Ajouter une note à ce dépôt"></textarea>
+                                    </div>
+                                    
+                                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                                        <p class="text-blue-800 dark:text-blue-300 flex items-start">
+                                            <i class="fas fa-info-circle mt-1 mr-2"></i>
+                                            <span>Après avoir soumis ce formulaire, vous recevrez une demande de paiement sur votre téléphone. Veuillez confirmer le paiement depuis votre appareil mobile.</span>
+                                        </p>
+                                    </div>
+                                    
+                                    <button type="submit" class="w-full bg-primary hover:bg-secondary text-white py-3 px-6 rounded-lg font-medium transition-all duration-300 shadow-md flex justify-center items-center">
+                                        <i class="fas fa-wallet mr-2"></i>
+                                        Effectuer le dépôt
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 sticky top-24">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-lg mb-4">Simulation de levier</h3>
+                                
+                                <div class="border dark:border-gray-700 rounded-lg p-4 mb-6">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-sm font-medium">Montant du dépôt</span>
+                                        <span class="text-primary font-bold">500 $</span>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <input type="range" min="300" max="2000" value="500" step="50" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700" id="depositSlider">
+                                        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            <span>300 $</span>
+                                            <span>2000 $</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <hr class="my-4 border-gray-200 dark:border-gray-700">
+                                    
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Dépôt actuel</span>
+                                            <span class="font-medium">1,500 $</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Nouveau dépôt</span>
+                                            <span class="font-medium text-primary">+500 $</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Total après dépôt</span>
+                                            <span class="font-medium">2,000 $</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Levier applicable</span>
+                                            <span class="font-medium text-cyan">1:5</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Marge calculée</span>
+                                            <span class="font-medium text-success">10,000 $</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Marge actuelle</span>
+                                            <span class="font-medium">6,000 $</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-sm font-medium">Augmentation de marge</span>
+                                            <span class="font-bold text-success">+4,000 $</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h4 class="font-medium mb-3">Mes derniers dépôts</h4>
+                                <div class="space-y-4">
+                                    <div class="border-b dark:border-gray-700 pb-3">
+                                        <div class="flex justify-between mb-1">
+                                            <span class="font-medium">Dépôt trimestriel</span>
+                                            <span class="text-success font-medium">+500.00 $</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+                                            <span>18 Août 2023</span>
+                                            <span class="text-green-600 dark:text-green-400">Terminé</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="border-b dark:border-gray-700 pb-3">
+                                        <div class="flex justify-between mb-1">
+                                            <span class="font-medium">Dépôt initial</span>
+                                            <span class="text-success font-medium">+1,000.00 $</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+                                            <span>15 Mai 2023</span>
+                                            <span class="text-green-600 dark:text-green-400">Terminé</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Withdraw section -->
+                <section id="withdraw-section" class="page-section hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-xl mb-6">Demande de retrait</h3>
+                                
+                                <!-- Alert about withdraw impact -->
+                                <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-100 dark:border-yellow-800 mb-6">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-exclamation-triangle text-yellow-600 dark:text-yellow-500 mt-0.5"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-400">Impact sur votre levier</h3>
+                                            <div class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                                                <p>Un retrait important pourrait réduire votre levier et diminuer votre marge disponible. Consultez les simulations à droite pour comprendre l'impact de votre retrait.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <form class="space-y-6">
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Méthode de retrait</label>
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="withdraw-method" class="sr-only peer" checked="">
+                                                <div class="flex flex-col items-center p-4 rounded-lg border-2 peer-checked:border-primary peer-checked:bg-primary/5 transition-all dark:border-gray-700">
+                                                    <i class="fas fa-money-bill-wave text-2xl mb-2 text-green-500"></i>
+                                                    <span class="font-medium">En espèces</span>
+                                                </div>
+                                            </label>
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="withdraw-method" class="sr-only peer">
+                                                <div class="flex flex-col items-center p-4 rounded-lg border-2 peer-checked:border-primary peer-checked:bg-primary/5 transition-all dark:border-gray-700">
+                                                    <i class="fas fa-mobile-alt text-2xl mb-2 text-blue-500"></i>
+                                                    <span class="font-medium">Mobile Money</span>
+                                                </div>
+                                            </label>
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="withdraw-method" class="sr-only peer">
+                                                <div class="flex flex-col items-center p-4 rounded-lg border-2 peer-checked:border-primary peer-checked:bg-primary/5 transition-all dark:border-gray-700">
+                                                    <i class="fas fa-university text-2xl mb-2 text-purple-500"></i>
+                                                    <span class="font-medium">Virement bancaire</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="mobile-money-fields" class="space-y-6 hidden">
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Opérateur Mobile Money</label>
+                                            <select class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                                <option value="orange">Orange Money</option>
+                                                <option value="mtn">MTN Mobile</option>
+                                                <option value="moov">Moov Money</option>
+                                                <option value="wave">Wave</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Numéro Mobile Money</label>
+                                            <input type="tel" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Ex: 076543210">
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="bank-fields" class="space-y-6 hidden">
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Nom de la banque</label>
+                                            <input type="text" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Ex: Banque Nationale">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Numéro de compte</label>
+                                            <input type="text" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Ex: 0012345678901">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Nom du titulaire</label>
+                                            <input type="text" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Nom complet du titulaire">
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="cash-fields">
+                                        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                                            <p class="text-blue-800 dark:text-blue-300 flex items-start">
+                                                <i class="fas fa-info-circle mt-1 mr-2"></i>
+                                                <span>Le retrait en espèces nécessite une visite à l'une de nos agences. Veuillez vous munir d'une pièce d'identité.</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Montant à retirer (en $)</label>
+                                        <div class="relative">
+                                            <input type="number" value="200" min="10" max="1500" step="10" class="w-full p-3 pl-10 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Entrez le montant" id="withdrawAmount">
+                                            <div class="absolute inset-y-0 left-0 flex items-center pl-3">
+                                                <span class="text-gray-500 dark:text-gray-400">$</span>
+                                            </div>
+                                        </div>
+                                        <p class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            <span>Montant minimum: 10 $</span>
+                                            <span>Solde disponible: 1,500.00 $</span>
+                                        </p>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Motif du retrait (optionnel)</label>
+                                        <textarea class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary" rows="3" placeholder="Précisez le motif de ce retrait"></textarea>
+                                    </div>
+                                    
+                                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                                        <p class="text-blue-800 dark:text-blue-300 flex items-start">
+                                            <i class="fas fa-info-circle mt-1 mr-2"></i>
+                                            <span>Les demandes de retrait sont traitées dans un délai de 24 à 48 heures ouvrables. Un retrait important peut affecter votre levier et votre marge disponible.</span>
+                                        </p>
+                                    </div>
+                                    
+                                    <button type="submit" class="w-full bg-primary hover:bg-secondary text-white py-3 px-6 rounded-lg font-medium transition-all duration-300 shadow-md flex justify-center items-center">
+                                        <i class="fas fa-money-bill-wave mr-2"></i>
+                                        Soumettre la demande de retrait
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 sticky top-24">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-lg mb-4">Impact du retrait</h3>
+                                
+                                <div class="border dark:border-gray-700 rounded-lg p-4 mb-6">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-sm font-medium">Montant du retrait</span>
+                                        <span class="text-danger font-bold">-200 $</span>
+                                    </div>
+                                    
+                                    <hr class="my-4 border-gray-200 dark:border-gray-700">
+                                    
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Solde actuel</span>
+                                            <span class="font-medium">1,500 $</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Après retrait</span>
+                                            <span class="font-medium">1,300 $</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Levier actuel</span>
+                                            <span class="font-medium">1:4</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Levier après retrait</span>
+                                            <span class="font-medium">1:4</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Marge actuelle</span>
+                                            <span class="font-medium">6,000 $</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-sm font-medium">Marge après retrait</span>
+                                            <span class="font-medium text-danger">5,200 $</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mb-6">
+                                    <div class="flex items-start">
+                                        <i class="fas fa-exclamation-circle text-primary mt-1 mr-2"></i>
+                                        <p class="text-sm text-gray-700 dark:text-gray-300">
+                                            Un retrait supérieur à <strong>500$</strong> réduirait votre levier de 1:4 à 1:3, diminuant significativement votre marge disponible.
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <h4 class="font-medium mb-3">Mes derniers retraits</h4>
+                                <div class="space-y-4">
+                                    <div class="border-b dark:border-gray-700 pb-3">
+                                        <div class="flex justify-between mb-1">
+                                            <span class="font-medium">Retrait partiel</span>
+                                            <span class="text-danger font-medium">-200.00 $</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+                                            <span>15 Juillet 2023</span>
+                                            <span class="text-green-600 dark:text-green-400">Terminé</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Margin Account section -->
+                <section id="margin-account-section" class="page-section hidden space-y-6">
+                    <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6">
+                        <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-xl mb-6">Mon Compte Marge</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-5">
+                                <h4 class="text-primary font-semibold mb-4">Informations générales</h4>
+                                <ul class="space-y-3">
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Type de compte</span>
+                                        <span class="font-medium">CMFSM</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Catégorie client</span>
+                                        <span class="font-medium">Individu</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Numéro de compte</span>
+                                        <span class="font-medium">CMFSM-23087-MD</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Date d'ouverture</span>
+                                        <span class="font-medium">15 Mai 2023</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Statut</span>
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Actif</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-5">
+                                <h4 class="text-primary font-semibold mb-4">État du compte</h4>
+                                <ul class="space-y-3">
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Solde actuel</span>
+                                        <span class="font-medium">1,500.00 $</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Levier actuel</span>
+                                        <span class="font-medium">1:4</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Marge disponible</span>
+                                        <span class="font-medium">6,000.00 $</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Marge utilisée</span>
+                                        <span class="font-medium">2,400.00 $</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Marge restante</span>
+                                        <span class="font-medium text-success">3,600.00 $</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-5">
+                                <h4 class="text-primary font-semibold mb-4">Plage de dépôt actuelle</h4>
+                                <ul class="space-y-3">
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Dépôt minimum</span>
+                                        <span class="font-medium">400.00 $</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Dépôt maximum</span>
+                                        <span class="font-medium">500.00 $</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Levier actuel</span>
+                                        <span class="font-medium">1:4</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Prochain levier</span>
+                                        <span class="font-medium text-cyan">1:5</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Dépôt pour prochain levier</span>
+                                        <span class="font-medium text-primary">+500.00 $</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-8 border-gray-200 dark:border-gray-700">
+                        
+                        <h4 class="font-semibold text-gray-800 dark:text-gray-200 text-lg mb-4">Tableau des leviers disponibles</h4>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full border-collapse">
+                                <thead>
+                                    <tr>
+                                        <th class="bg-primary text-white py-3 px-4 text-left rounded-tl-lg">Plage de dépôt (Min)</th>
+                                        <th class="bg-primary text-white py-3 px-4 text-left">Plage de dépôt (Max)</th>
+                                        <th class="bg-primary text-white py-3 px-4 text-center">Leviers</th>
+                                        <th class="bg-primary text-white py-3 px-4 text-right">Marge Min</th>
+                                        <th class="bg-primary text-white py-3 px-4 text-right rounded-tr-lg">Marge Max</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                                        <td class="py-3 px-4">300 $</td>
+                                        <td class="py-3 px-4">400 $</td>
+                                        <td class="py-3 px-4 text-center">1:3</td>
+                                        <td class="py-3 px-4 text-right">900 $</td>
+                                        <td class="py-3 px-4 text-right">1,200 $</td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700">
+                                        <td class="py-3 px-4 bg-blue-50 dark:bg-blue-900/20 font-medium">400 $</td>
+                                        <td class="py-3 px-4 bg-blue-50 dark:bg-blue-900/20 font-medium">500 $</td>
+                                        <td class="py-3 px-4 text-center bg-blue-50 dark:bg-blue-900/20 font-medium">1:4</td>
+                                        <td class="py-3 px-4 text-right bg-blue-50 dark:bg-blue-900/20 font-medium">1,600 $</td>
+                                        <td class="py-3 px-4 text-right bg-blue-50 dark:bg-blue-900/20 font-medium">2,000 $</td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                                        <td class="py-3 px-4">500 $</td>
+                                        <td class="py-3 px-4">2,000 $</td>
+                                        <td class="py-3 px-4 text-center">1:5</td>
+                                        <td class="py-3 px-4 text-right">2,500 $</td>
+                                        <td class="py-3 px-4 text-right">10,000 $</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-2 text-sm text-gray-500 dark:text-gray-400 italic">
+                            <p>* La plage surlignée correspond à votre niveau actuel</p>
+                        </div>
+                        
+                        <div class="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg mt-6">
+                            <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">Comment maximiser votre marge</h4>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">
+                                Pour augmenter votre marge, vous pouvez effectuer un dépôt supplémentaire de 500$ pour passer au levier 1:5, ce qui vous donnera accès à une marge maximale de 10,000$.
+                            </p>
+                            <a href="#deposit" class="text-primary font-medium hover:underline">Effectuer un dépôt maintenant</a>
+                        </div>
+                        
+                        <hr class="my-8 border-gray-200 dark:border-gray-700">
+                        
+                        <div>
+                            <h4 class="font-semibold text-gray-800 dark:text-gray-200 text-lg mb-4">Description du compte</h4>
+                            
+                            <p class="text-gray-600 dark:text-gray-400 mb-6">
+                                Le CMFSM (Compte Marge pour le Financement des Soins Médicaux) est un compte qui offre une marge à nos clients pour le financement lié aux soins médicaux. Ce compte vous permet de faire une épargne trimestrielle et de débloquer un levier correspondant à la somme totale du dépôt.
+                            </p>
+                            
+                            <div class="mt-8">
+                                <h4 class="font-semibold text-gray-800 dark:text-gray-200 text-lg mb-4">Avantages de votre compte</h4>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <div class="flex items-start">
+                                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4 shrink-0">
+                                            <i class="fas fa-hand-holding-medical text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-medium mb-1">Financement médical</h5>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Accès à des financements pour tous vos besoins de santé.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-start">
+                                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4 shrink-0">
+                                            <i class="fas fa-chart-line text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-medium mb-1">Leviers avantageux</h5>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Jusqu'à 5 fois le montant de votre dépôt disponible en marge.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-start">
+                                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4 shrink-0">
+                                            <i class="fas fa-percentage text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-medium mb-1">Intérêts trimestriels</h5>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Bénéficiez d'intérêts attractifs sur vos dépôts.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-start">
+                                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4 shrink-0">
+                                            <i class="fas fa-mobile-alt text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-medium mb-1">Gestion en ligne</h5>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Suivez et gérez votre compte à tout moment via notre plateforme.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-start">
+                                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4 shrink-0">
+                                            <i class="fas fa-shield-alt text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-medium mb-1">Sécurité garantie</h5>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Vos fonds sont sécurisés et votre épargne est garantie.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-start">
+                                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4 shrink-0">
+                                            <i class="fas fa-user-md text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-medium mb-1">Partenaires médicaux</h5>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Accès à notre réseau de partenaires de santé préférentiels.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Interests section -->
+                <section id="interests-section" class="page-section hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-xl mb-6">Suivi des intérêts</h3>
+                                
+                                <div class="mb-6">
+                                    <div class="flex flex-wrap justify-between items-center mb-4">
+                                        <h4 class="font-medium text-gray-800 dark:text-gray-200">Évolution des intérêts</h4>
+                                        
+                                        <div class="flex items-center space-x-2">
+                                            <button class="interest-period-btn active px-3 py-1 text-xs font-medium rounded-full bg-primary text-white">6M</button>
+                                            <button class="interest-period-btn px-3 py-1 text-xs font-medium rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">1A</button>
+                                            <button class="interest-period-btn px-3 py-1 text-xs font-medium rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">Total</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="chart-container">
+                                        <canvas id="interestsHistoryChart"></canvas>
+                                    </div>
+                                </div>
+                                
+                                <hr class="my-6 border-gray-200 dark:border-gray-700">
+                                
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-4">Détail des intérêts par trimestre</h4>
+                                
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead>
+                                            <tr class="border-b dark:border-gray-700">
+                                                <th class="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Période</th>
+                                                <th class="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Dépôt moyen</th>
+                                                <th class="text-center py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Taux</th>
+                                                <th class="text-right py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Intérêts gagnés</th>
+                                                <th class="text-right py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Date de versement</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                                                <td class="py-3 px-4">T3 2023 (Juil-Sep)</td>
+                                                <td class="py-3 px-4">1,350.00 $</td>
+                                                <td class="py-3 px-4 text-center">3.7%</td>
+                                                <td class="py-3 px-4 text-right text-success">+50.00 $</td>
+                                                <td class="py-3 px-4 text-right">12 Août 2023</td>
+                                            </tr>
+                                            <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                                                <td class="py-3 px-4">T2 2023 (Avr-Juin)</td>
+                                                <td class="py-3 px-4">1,250.00 $</td>
+                                                <td class="py-3 px-4 text-center">3.6%</td>
+                                                <td class="py-3 px-4 text-right text-success">+45.00 $</td>
+                                                <td class="py-3 px-4 text-right">15 Juin 2023</td>
+                                            </tr>
+                                            <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                                                <td class="py-3 px-4">T1 2023 (Jan-Mar)</td>
+                                                <td class="py-3 px-4">1,000.00 $</td>
+                                                <td class="py-3 px-4 text-center">3.5%</td>
+                                                <td class="py-3 px-4 text-right text-success">+35.00 $</td>
+                                                <td class="py-3 px-4 text-right">15 Mars 2023</td>
+                                            </tr>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr class="bg-gray-50 dark:bg-gray-800 font-medium">
+                                                <td class="py-3 px-4" colspan="3">Total des intérêts</td>
+                                                <td class="py-3 px-4 text-right text-success">+130.00 $</td>
+                                                <td class="py-3 px-4"></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                                
+                                <div class="mt-6">
+                                    <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-4">Prochains versements d'intérêts</h4>
+                                    
+                                    <div class="bg-primary/5 dark:bg-primary/10 rounded-lg p-4 border border-primary/20">
+                                        <div class="flex items-start">
+                                            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4 shrink-0">
+                                                <i class="fas fa-calendar-alt text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="font-medium mb-1">Prochain versement d'intérêts trimestriel</h5>
+                                                <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">En maintenant votre dépôt actuel de 1,500$, votre prochain versement d'intérêts est estimé à environ 60$ (taux estimé: 4%).</p>
+                                                <p class="text-sm">
+                                                    <span class="font-medium">Date estimée:</span>
+                                                    <span class="text-primary">15 Octobre 2023</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 sticky top-24">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-lg mb-4">Résumé des intérêts</h3>
+                                
+                                <div class="grid grid-cols-2 gap-4 mb-6">
+                                    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Intérêts cumulés</p>
+                                        <p class="text-xl font-bold text-primary">250.00 $</p>
+                                    </div>
+                                    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Depuis l'ouverture</p>
+                                        <p class="text-xl font-bold text-primary">3 mois</p>
+                                    </div>
+                                </div>
+                                
+                                <h4 class="font-medium mb-3">Taux d'intérêt trimestriel moyen</h4>
+                                <div class="mb-6">
+                                    <div class="bg-gray-100 dark:bg-gray-800 rounded-full h-4 mb-2">
+                                        <div class="bg-gradient-to-r from-primary to-secondary h-4 rounded-full" style="width: 73%"></div>
+                                    </div>
+                                    <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                                        <span>3.6% en moyenne</span>
+                                        <span>5% max</span>
+                                    </div>
+                                </div>
+                                
+                                <h4 class="font-medium mb-3">Calcul des intérêts</h4>
+                                <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-6">
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Dépôt actuel</span>
+                                            <span class="font-medium">1,500 $</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Taux d'intérêt estimé</span>
+                                            <span class="font-medium">4% par trimestre</span>
+                                        </div>
+                                        <hr class="my-2 border-gray-200 dark:border-gray-700">
+                                        <div class="flex justify-between">
+                                            <span class="text-sm font-medium">Intérêts estimés</span>
+                                            <span class="font-bold text-success">+60 $ / trimestre</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h4 class="font-medium mb-3">Optimiser vos intérêts</h4>
+                                <div class="bg-cyan/5 dark:bg-cyan/10 p-4 rounded-lg border border-cyan/20">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-lightbulb text-cyan mt-0.5"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h5 class="text-sm font-medium text-gray-800 dark:text-gray-200">Conseil d'optimisation</h5>
+                                            <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">
+                                                En augmentant votre dépôt à 2,000$ (passage au levier 1:5), vous pourriez générer jusqu'à 80$ d'intérêts par trimestre.
+                                            </p>
+                                            <a href="#deposit" class="mt-2 text-sm font-medium text-cyan hover:underline block">Effectuer un dépôt supplémentaire</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Profile section -->
+                <section id="profile-section" class="page-section hidden space-y-6">
+                    <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6">
+                        <div class="flex flex-col md:flex-row gap-8">
+                            <div class="md:w-1/3 lg:w-1/4">
+                                <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 text-center">
+                                    <div class="relative w-32 h-32 mx-auto mb-4">
+                                        <img src="129403.jpg" alt="Profile" class="w-full h-full rounded-full object-cover">
+                                        <button class="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-md">
+                                            <i class="fas fa-camera"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <h3 class="text-xl font-bold mb-1">Maman jolie</h3>
+                                    <p class="text-gray-600 dark:text-gray-400 mb-4">Client depuis Mai 2023</p>
+                                    
+                                    <div class="flex justify-center">
+                                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                            CMFSM Individu
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="md:w-2/3 lg:w-3/4">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-xl mb-6">Informations personnelles</h3>
+                                
+                                <form class="space-y-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Prénom</label>
+                                            <input type="text" value="Marie" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Nom</label>
+                                            <input type="text" value="Dubois" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Email</label>
+                                            <input type="email" value="marie.dubois@example.com" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Téléphone</label>
+                                            <input type="tel" value="+123 456 7890" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Date de naissance</label>
+                                            <input type="date" value="1990-04-25" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Profession</label>
+                                            <input type="text" value="Médecin" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Adresse</label>
+                                        <input type="text" value="45 Avenue de la République" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary mb-3">
+                                        
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                            <input type="text" value="Paris" placeholder="Ville" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                            <input type="text" value="Île-de-France" placeholder="État/Province" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                            <input type="text" value="75011" placeholder="Code postal" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                    </div>
+                                    
+                                    <hr class="border-gray-200 dark:border-gray-700">
+                                    
+                                   
+                                    <hr class="border-gray-200 dark:border-gray-700">
+                                    
+                                    <h4 class="font-semibold text-gray-800 dark:text-gray-200 text-lg">Sécurité</h4>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Mot de passe actuel</label>
+                                            <input type="password" placeholder="••••••••" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Nouveau mot de passe</label>
+                                            <input type="password" placeholder="••••••••" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Confirmer le mot de passe</label>
+                                            <input type="password" placeholder="••••••••" class="w-full p-3 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Authentification à deux facteurs</label>
+                                            <div class="flex items-center">
+                                                <label class="relative inline-flex items-center cursor-pointer">
+                                                    <input type="checkbox" class="sr-only peer" checked="">
+                                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                                                    <span class="ml-3 text-sm text-gray-700 dark:text-gray-300">Activé</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                                        <p class="text-blue-800 dark:text-blue-300 flex items-start text-sm">
+                                            <i class="fas fa-info-circle mt-1 mr-2"></i>
+                                            <span>Pour votre sécurité, nous vous recommandons de changer votre mot de passe régulièrement et d'activer l'authentification à deux facteurs.</span>
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="flex justify-end space-x-4">
+                                        <button type="button" class="px-6 py-3 rounded-lg border dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-all">
+                                            Annuler
+                                        </button>
+                                        <button type="submit" class="px-6 py-3 rounded-lg bg-primary hover:bg-secondary text-white font-medium transition-all duration-300 shadow-md">
+                                            Enregistrer les modifications
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Scripts -->
+    <script>
+        // Initialize app when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dark mode toggle
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            
+            // Check for saved dark mode preference or use system preference
+            if (localStorage.getItem('darkMode') === 'enabled' || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && localStorage.getItem('darkMode') !== 'disabled')) {
+                document.documentElement.classList.add('dark');
+            }
+            
+            darkModeToggle.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+                
+                if (document.documentElement.classList.contains('dark')) {
+                    localStorage.setItem('darkMode', 'enabled');
+                } else {
+                    localStorage.setItem('darkMode', 'disabled');
+                }
+                
+                // Update charts when theme changes
+                updateCharts();
+            });
+            
+            // Listen for system preference changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                if (localStorage.getItem('darkMode') === null) {
+                    if (e.matches) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                    // Update charts when theme changes
+                    updateCharts();
+                }
+            });
+            
+            // Mobile menu
+            const toggleSidebar = document.getElementById('toggle-sidebar');
+            const closeSidebar = document.getElementById('close-sidebar');
+            const sidebar = document.querySelector('.sidebar');
+            
+            toggleSidebar.addEventListener('click', () => {
+                sidebar.classList.add('active');
+            });
+            
+            closeSidebar.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+            });
+            
+            // Profile dropdown
+            const profileDropdown = document.getElementById('profile-dropdown');
+            const dropdownMenu = profileDropdown.querySelector('.dropdown-menu');
+            
+            profileDropdown.addEventListener('click', () => {
+                dropdownMenu.classList.toggle('hidden');
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!profileDropdown.contains(e.target)) {
+                    dropdownMenu.classList.add('hidden');
+                }
+            });
+            
+            // Navigation
+            const navLinks = document.querySelectorAll('.nav-link');
+            const pageSections = document.querySelectorAll('.page-section');
+            const pageTitle = document.getElementById('page-title');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    // Get the target section ID
+                    const targetId = link.getAttribute('href').substring(1);
+                    const targetSection = document.getElementById(`${targetId}-section`);
+                    
+                    // Hide all sections and remove active class from all links
+                    pageSections.forEach(section => section.classList.add('hidden'));
+                    navLinks.forEach(navLink => {
+                        navLink.classList.remove('active', 'bg-primary/10', 'dark:bg-primary/20', 'text-primary');
+                        navLink.classList.add('text-gray-700', 'dark:text-gray-300', 'hover:bg-gray-100', 'dark:hover:bg-gray-800');
+                    });
+                    
+                    // Show target section and set link as active
+                    targetSection.classList.remove('hidden');
+                    targetSection.classList.add('fade-in');
+                    link.classList.add('active', 'bg-primary/10', 'dark:bg-primary/20', 'text-primary');
+                    link.classList.remove('text-gray-700', 'dark:text-gray-300', 'hover:bg-gray-100', 'dark:hover:bg-gray-800');
+                    
+                    // Update page title
+                    pageTitle.textContent = link.querySelector('span').textContent;
+                    
+                    // Close sidebar on mobile
+                    if (window.innerWidth < 1024) {
+                        sidebar.classList.remove('active');
+                    }
+                    
+                    // Scroll to top
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            });
+            
+            // Withdraw method selection
+            const withdrawMethodRadios = document.querySelectorAll('input[name="withdraw-method"]');
+            const mobileMoneySections = document.getElementById('mobile-money-fields');
+            const bankFields = document.getElementById('bank-fields');
+            const cashFields = document.getElementById('cash-fields');
+            
+            withdrawMethodRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    const method = radio.parentElement.querySelector('span').textContent.trim();
+                    
+                    // Hide all method-specific fields
+                    mobileMoneySections.classList.add('hidden');
+                    bankFields.classList.add('hidden');
+                    cashFields.classList.add('hidden');
+                    
+                    // Show the relevant fields based on the selected method
+                    if (method === 'Mobile Money') {
+                        mobileMoneySections.classList.remove('hidden');
+                    } else if (method === 'Virement bancaire') {
+                        bankFields.classList.remove('hidden');
+                    } else if (method === 'En espèces') {
+                        cashFields.classList.remove('hidden');
+                    }
+                });
+            });
+            
+            // Period buttons for charts
+            const periodBtns = document.querySelectorAll('.period-btn');
+            
+            periodBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    periodBtns.forEach(b => {
+                        b.classList.remove('active', 'bg-primary', 'text-white');
+                        b.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                    });
+                    
+                    // Add active class to clicked button
+                    btn.classList.add('active', 'bg-primary', 'text-white');
+                    btn.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                    
+                    // Update charts based on the selected period
+                    // For demonstration purposes, we'll just regenerate the charts
+                    updateCharts();
+                });
+            });
+            
+            // Interest period buttons 
+            const interestPeriodBtns = document.querySelectorAll('.interest-period-btn');
+            
+            interestPeriodBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    interestPeriodBtns.forEach(b => {
+                        b.classList.remove('active', 'bg-primary', 'text-white');
+                        b.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                    });
+                    
+                    // Add active class to clicked button
+                    btn.classList.add('active', 'bg-primary', 'text-white');
+                    btn.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                    
+                    // Update interest chart
+                    updateInterestChart();
+                });
+            });
+            
+            // Deposit slider
+            const depositSlider = document.getElementById('depositSlider');
+            
+            if (depositSlider) {
+                depositSlider.addEventListener('input', function() {
+                    // Update deposit amount
+                    const depositAmount = document.querySelector('.bg-white.dark\\:bg-dark-card .flex.justify-between.items-center.mb-2 .text-primary.font-bold');
+                    depositAmount.textContent = this.value + ' $';
+                    
+                    // Update deposit calculation
+                    const newDeposit = document.querySelector('.space-y-3 .flex.justify-between:nth-child(2) .font-medium.text-primary');
+                    newDeposit.textContent = '+' + this.value + ' $';
+                    
+                    const totalAfter = document.querySelector('.space-y-3 .flex.justify-between:nth-child(3) .font-medium');
+                    const currentDeposit = 1500;
+                    const totalValue = currentDeposit + parseInt(this.value);
+                    totalAfter.textContent = totalValue + ' $';
+                    
+                    // Update leverage and margin calculation based on deposit amount
+                    let leverageRatio = '1:4';
+                    let marginValue = totalValue * 4;
+                    let colorClass = 'text-cyan';
+                    
+                    if (totalValue >= 500) {
+                        leverageRatio = '1:5';
+                        marginValue = totalValue * 5;
+                    } else if (totalValue < 400) {
+                        leverageRatio = '1:3';
+                        marginValue = totalValue * 3;
+                    }
+                    
+                    const leverageElement = document.querySelector('.space-y-3 .flex.justify-between:nth-child(4) .font-medium');
+                    leverageElement.className = 'font-medium ' + colorClass;
+                    leverageElement.textContent = leverageRatio;
+                    
+                    const marginCalculated = document.querySelector('.space-y-3 .flex.justify-between:nth-child(5) .font-medium');
+                    marginCalculated.textContent = marginValue.toLocaleString() + ' $';
+                    
+                    const currentMargin = 6000;
+                    const marginIncrease = marginValue - currentMargin;
+                    
+                    const marginIncreaseElement = document.querySelector('.space-y-3 .flex.justify-between:nth-child(7) .font-bold');
+                    marginIncreaseElement.textContent = (marginIncrease >= 0 ? '+' : '') + marginIncrease.toLocaleString() + ' $';
+                    marginIncreaseElement.className = 'font-bold ' + (marginIncrease >= 0 ? 'text-success' : 'text-danger');
+                });
+            }
+            
+            // Withdraw amount input
+            const withdrawAmountInput = document.getElementById('withdrawAmount');
+            
+            if (withdrawAmountInput) {
+                withdrawAmountInput.addEventListener('input', function() {
+                    // Update withdraw amount display
+                    const withdrawAmount = document.querySelector('.border.dark\\:border-gray-700.rounded-lg.p-4.mb-6 .flex.justify-between.items-center.mb-2 .text-danger.font-bold');
+                    withdrawAmount.textContent = '-' + this.value + ' $';
+                    
+                    // Update calculation
+                    const currentBalance = 1500;
+                    const withdrawValue = parseInt(this.value);
+                    const remainingBalance = currentBalance - withdrawValue;
+                    
+                    const afterWithdraw = document.querySelector('.space-y-3 .flex.justify-between:nth-child(2) .font-medium');
+                    afterWithdraw.textContent = remainingBalance + ' $';
+                    
+                    // Update leverage based on remaining balance
+                    let leverageAfter = '1:4';
+                    
+                    if (remainingBalance < 400) {
+                        leverageAfter = '1:3';
+                    } else if (remainingBalance >= 500) {
+                        leverageAfter = '1:5';
+                    }
+                    
+                    const leverageAfterElement = document.querySelector('.space-y-3 .flex.justify-between:nth-child(4) .font-medium');
+                    leverageAfterElement.textContent = leverageAfter;
+                    
+                    // Update margin calculation
+                    const leverageMultiplier = leverageAfter === '1:3' ? 3 : (leverageAfter === '1:4' ? 4 : 5);
+                    const marginAfter = remainingBalance * leverageMultiplier;
+                    
+                    const marginAfterElement = document.querySelector('.space-y-3 .flex.justify-between:nth-child(6) .font-medium');
+                    marginAfterElement.textContent = marginAfter + ' $';
+                    marginAfterElement.className = 'font-medium text-danger';
+                });
+            }
+            
+            // Initialize charts
+            initCharts();
+        });
+        
+        // Initialize charts
+        function initCharts() {
+            // Balance chart
+            const balanceCtx = document.getElementById('balanceChart').getContext('2d');
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            const textColor = isDarkMode ? '#E5E5E5' : '#1F2937';
+            
+            // Sample data for balance chart
+            const balanceData = {
+                labels: ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+                datasets: [
+                    {
+                        label: 'Solde',
+                        data: [1000, 1050, 1200, 1350, 1250, 1500],
+                        borderColor: '#5D5CDE',
+                        backgroundColor: 'rgba(93, 92, 222, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Marge disponible',
+                        data: [3000, 3150, 4800, 5400, 5000, 6000],
+                        borderColor: '#06B6D4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        borderDash: [5, 5]
+                    }
+                ]
+            };
+            
+            window.balanceChart = new Chart(balanceCtx, {
+                type: 'line',
+                data: balanceData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: textColor,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: isDarkMode ? '#262626' : '#FFFFFF',
+                            titleColor: textColor,
+                            bodyColor: textColor,
+                            borderColor: gridColor,
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y} $`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: textColor
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor,
+                                callback: function(value) {
+                                    return value + ' $';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Interest chart (bar chart)
+            const interestCtx = document.getElementById('interestChart').getContext('2d');
+            
+            // Sample data for interest chart
+            const interestData = {
+                labels: ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+                datasets: [{
+                    label: 'Intérêts mensuels',
+                    data: [35, 40, 42, 45, 48, 50],
+                    backgroundColor: '#10B981',
+                    borderRadius: 4
+                }]
+            };
+            
+            window.interestChart = new Chart(interestCtx, {
+                type: 'bar',
+                data: interestData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: isDarkMode ? '#262626' : '#FFFFFF',
+                            titleColor: textColor,
+                            bodyColor: textColor,
+                            borderColor: gridColor,
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.parsed.y} $`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: textColor
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor,
+                                callback: function(value) {
+                                    return value + ' $';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Margin usage chart (doughnut)
+            const marginUsageCtx = document.getElementById('marginUsageChart').getContext('2d');
+            
+            // Sample data for margin usage chart
+            const marginUsageData = {
+                labels: ['Marge utilisée', 'Marge restante'],
+                datasets: [{
+                    data: [2400, 3600],
+                    backgroundColor: [
+                        '#8B5CF6', // purple
+                        '#5D5CDE'  // primary
+                    ],
+                    borderWidth: 0,
+                    cutout: '70%'
+                }]
+            };
+            
+            window.marginUsageChart = new Chart(marginUsageCtx, {
+                type: 'doughnut',
+                data: marginUsageData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: isDarkMode ? '#262626' : '#FFFFFF',
+                            titleColor: textColor,
+                            bodyColor: textColor,
+                            borderColor: gridColor,
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value * 100) / total) + '%';
+                                    return `${context.label}: ${value} $ (${percentage})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Interests history chart
+            const interestsHistoryCtx = document.getElementById('interestsHistoryChart');
+            
+            if (interestsHistoryCtx) {
+                // Sample data for interests history chart
+                const interestsHistoryData = {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Intérêts cumulés',
+                        data: [0, 0, 35, 75, 120, 170],
+                        borderColor: '#5D5CDE',
+                        backgroundColor: 'rgba(93, 92, 222, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                };
+                
+                window.interestsHistoryChart = new Chart(interestsHistoryCtx, {
+                    type: 'line',
+                    data: interestsHistoryData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: isDarkMode ? '#262626' : '#FFFFFF',
+                                titleColor: textColor,
+                                bodyColor: textColor,
+                                borderColor: gridColor,
+                                borderWidth: 1,
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Intérêts: ${context.parsed.y} $`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: textColor
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    color: gridColor
+                                },
+                                ticks: {
+                                    color: textColor,
+                                    callback: function(value) {
+                                        return value + ' $';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Update interest chart based on selected period
+        function updateInterestChart() {
+            if (window.interestsHistoryChart) {
+                const activeBtn = document.querySelector('.interest-period-btn.active');
+                const period = activeBtn.textContent.trim();
+                
+                // Update chart data based on selected period
+                let labels, data;
+                
+                if (period === '6M') {
+                    labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+                    data = [0, 0, 35, 75, 120, 170];
+                } else if (period === '1A') {
+                    labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    data = [0, 0, 35, 75, 120, 170, 220, 250, 300, 350, 400, 450];
+                } else { // Total
+                    labels = ['2022', '2023'];
+                    data = [200, 250];
+                }
+                
+                window.interestsHistoryChart.data.labels = labels;
+                window.interestsHistoryChart.data.datasets[0].data = data;
+                window.interestsHistoryChart.update();
+            }
+        }
+        
+        // Update charts when theme changes
+        function updateCharts() {
+            if (window.balanceChart && window.interestChart && window.marginUsageChart) {
+                const isDarkMode = document.documentElement.classList.contains('dark');
+                const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                const textColor = isDarkMode ? '#E5E5E5' : '#1F2937';
+                
+                // Update balance chart
+                window.balanceChart.options.plugins.tooltip.backgroundColor = isDarkMode ? '#262626' : '#FFFFFF';
+                window.balanceChart.options.plugins.tooltip.titleColor = textColor;
+                window.balanceChart.options.plugins.tooltip.bodyColor = textColor;
+                window.balanceChart.options.plugins.tooltip.borderColor = gridColor;
+                window.balanceChart.options.plugins.legend.labels.color = textColor;
+                window.balanceChart.options.scales.x.ticks.color = textColor;
+                window.balanceChart.options.scales.y.ticks.color = textColor;
+                window.balanceChart.options.scales.y.grid.color = gridColor;
+                window.balanceChart.update();
+                
+                // Update interest chart
+                window.interestChart.options.plugins.tooltip.backgroundColor = isDarkMode ? '#262626' : '#FFFFFF';
+                window.interestChart.options.plugins.tooltip.titleColor = textColor;
+                window.interestChart.options.plugins.tooltip.bodyColor = textColor;
+                window.interestChart.options.plugins.tooltip.borderColor = gridColor;
+                window.interestChart.options.scales.x.ticks.color = textColor;
+                window.interestChart.options.scales.y.ticks.color = textColor;
+                window.interestChart.options.scales.y.grid.color = gridColor;
+                window.interestChart.update();
+                
+                // Update margin usage chart
+                window.marginUsageChart.options.plugins.tooltip.backgroundColor = isDarkMode ? '#262626' : '#FFFFFF';
+                window.marginUsageChart.options.plugins.tooltip.titleColor = textColor;
+                window.marginUsageChart.options.plugins.tooltip.bodyColor = textColor;
+                window.marginUsageChart.options.plugins.tooltip.borderColor = gridColor;
+                window.marginUsageChart.update();
+                
+                // Update interests history chart if it exists
+                if (window.interestsHistoryChart) {
+                    window.interestsHistoryChart.options.plugins.tooltip.backgroundColor = isDarkMode ? '#262626' : '#FFFFFF';
+                    window.interestsHistoryChart.options.plugins.tooltip.titleColor = textColor;
+                    window.interestsHistoryChart.options.plugins.tooltip.bodyColor = textColor;
+                    window.interestsHistoryChart.options.plugins.tooltip.borderColor = gridColor;
+                    window.interestsHistoryChart.options.scales.x.ticks.color = textColor;
+                    window.interestsHistoryChart.options.scales.y.ticks.color = textColor;
+                    window.interestsHistoryChart.options.scales.y.grid.color = gridColor;
+                    window.interestsHistoryChart.update();
+                }
+            }
+        }
+    </script>
+
+
+</body></html>

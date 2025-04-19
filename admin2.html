@@ -1,0 +1,689 @@
+<!DOCTYPE html><html lang="fr"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Administrateur</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js pour les graphiques -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        secondary: '#4B4BA5',
+                        accent: '#8583FF',
+                        dark: {
+                            bg: '#181818',
+                            card: '#232323',
+                            text: '#E0E0E0'
+                        },
+                        light: {
+                            bg: '#FFFFFF',
+                            card: '#F5F5F5',
+                            text: '#333333'
+                        }
+                    }
+                }
+            }
+        }
+
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+    <style>
+        /* Styles supplémentaires */
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.2);
+            border-radius: 3px;
+        }
+        .dark .scrollbar-thin::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+        }
+        .dark .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #5D5CDE, #4B4BA5);
+        }
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text min-h-screen flex flex-col">
+    <!-- Header avec logo et barre de recherche -->
+    <header class="bg-white dark:bg-dark-card shadow-md p-4 fixed w-full z-50">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <button id="sidebarToggle" class="p-2 rounded-lg bg-gray-100 dark:bg-dark-bg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all lg:hidden">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="text-xl font-bold text-primary hidden md:block">Dashboard Administrateur</h1>
+            </div>
+            <div class="flex-1 mx-4">
+                <div class="relative">
+                    <input type="text" placeholder="Rechercher un utilisateur, compte..." class="w-full py-2 px-4 rounded-lg bg-gray-100 dark:bg-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                    <button class="absolute right-3 top-2.5">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
+                    <i class="fas fa-bell"></i>
+                </button>
+                <div class="relative">
+                    <button class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                        <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span class="hidden md:block">Admin</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex pt-16 h-[calc(100vh-4rem)]">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="bg-white dark:bg-dark-card shadow-md w-64 fixed h-[calc(100vh-4rem)] overflow-y-auto transition-all transform -translate-x-full lg:translate-x-0 z-40">
+            <nav class="p-4">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#dashboard" class="flex items-center space-x-3 p-3 rounded-lg bg-primary bg-opacity-10 text-primary">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Tableau de bord</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#users" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                            <i class="fas fa-users"></i>
+                            <span>Utilisateurs</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#accounts" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                            <i class="fas fa-wallet"></i>
+                            <span>Comptes</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#transactions" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                            <i class="fas fa-exchange-alt"></i>
+                            <span>Transactions</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#deposits" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>Dépôts</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#reports" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Rapports</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#settings" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                            <i class="fas fa-cog"></i>
+                            <span>Paramètres</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Overlay pour mobile -->
+        <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden"></div>
+
+        <!-- Contenu principal -->
+        <main class="flex-1 p-4 lg:ml-64 overflow-y-auto scrollbar-thin">
+            <!-- Section tableau de bord -->
+            <section id="dashboard" class="mb-8">
+                <h2 class="text-2xl font-bold mb-6">Tableau de bord</h2>
+                
+                <!-- Statistiques générales -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white dark:bg-dark-card p-4 rounded-lg shadow-md">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Total Utilisateurs</p>
+                                <h3 class="text-2xl font-bold">1,254</h3>
+                                <p class="text-xs text-green-500"><i class="fas fa-arrow-up"></i> +5.2% ce mois</p>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center text-primary">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-dark-card p-4 rounded-lg shadow-md">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Comptes Actifs</p>
+                                <h3 class="text-2xl font-bold">3,879</h3>
+                                <p class="text-xs text-green-500"><i class="fas fa-arrow-up"></i> +8.1% ce mois</p>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-500">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-dark-card p-4 rounded-lg shadow-md">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Dépôts du mois</p>
+                                <h3 class="text-2xl font-bold">$452,389</h3>
+                                <p class="text-xs text-green-500"><i class="fas fa-arrow-up"></i> +12.4% ce mois</p>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center text-green-500">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-dark-card p-4 rounded-lg shadow-md">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Solde Total</p>
+                                <h3 class="text-2xl font-bold">$5,672,914</h3>
+                                <p class="text-xs text-green-500"><i class="fas fa-arrow-up"></i> +3.6% ce mois</p>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center text-purple-500">
+                                <i class="fas fa-piggy-bank"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Graphiques -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white dark:bg-dark-card p-4 rounded-lg shadow-md">
+                        <h3 class="font-semibold mb-4">Évolution des dépôts</h3>
+                        <div class="h-64">
+                            <canvas id="depositsChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-dark-card p-4 rounded-lg shadow-md">
+                        <h3 class="font-semibold mb-4">Répartition des comptes</h3>
+                        <div class="h-64">
+                            <canvas id="accountTypesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dernières transactions -->
+                <div class="bg-white dark:bg-dark-card p-4 rounded-lg shadow-md mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold">Dernières transactions</h3>
+                        <a href="#" class="text-sm text-primary">Voir tout</a>
+                    </div>
+                    <div class="table-responsive overflow-x-auto">
+                        <table class="w-full min-w-full">
+                            <thead>
+                                <tr class="border-b dark:border-gray-700">
+                                    <th class="text-left py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400">ID</th>
+                                    <th class="text-left py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400">Utilisateur</th>
+                                    <th class="text-left py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400">Type</th>
+                                    <th class="text-left py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400">Montant</th>
+                                    <th class="text-left py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400">Date</th>
+                                    <th class="text-left py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <td class="py-3 px-2 text-sm">#TR-7256</td>
+                                    <td class="py-3 px-2 text-sm">Jean Dupont</td>
+                                    <td class="py-3 px-2 text-sm">Dépôt</td>
+                                    <td class="py-3 px-2 text-sm font-medium text-green-600">+$300.00</td>
+                                    <td class="py-3 px-2 text-sm">12 Juin 2023, 14:25</td>
+                                    <td class="py-3 px-2 text-sm"><span class="px-2 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-600 text-xs">Complété</span></td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <td class="py-3 px-2 text-sm">#TR-7255</td>
+                                    <td class="py-3 px-2 text-sm">Marie Martin</td>
+                                    <td class="py-3 px-2 text-sm">Retrait</td>
+                                    <td class="py-3 px-2 text-sm font-medium text-red-600">-$150.00</td>
+                                    <td class="py-3 px-2 text-sm">12 Juin 2023, 13:40</td>
+                                    <td class="py-3 px-2 text-sm"><span class="px-2 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-600 text-xs">Complété</span></td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <td class="py-3 px-2 text-sm">#TR-7254</td>
+                                    <td class="py-3 px-2 text-sm">Philippe Legrand</td>
+                                    <td class="py-3 px-2 text-sm">Transfert</td>
+                                    <td class="py-3 px-2 text-sm font-medium text-red-600">-$500.00</td>
+                                    <td class="py-3 px-2 text-sm">12 Juin 2023, 11:20</td>
+                                    <td class="py-3 px-2 text-sm"><span class="px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 text-xs">En cours</span></td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <td class="py-3 px-2 text-sm">#TR-7253</td>
+                                    <td class="py-3 px-2 text-sm">Sophie Bernard</td>
+                                    <td class="py-3 px-2 text-sm">Dépôt</td>
+                                    <td class="py-3 px-2 text-sm font-medium text-green-600">+$750.00</td>
+                                    <td class="py-3 px-2 text-sm">12 Juin 2023, 10:05</td>
+                                    <td class="py-3 px-2 text-sm"><span class="px-2 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-600 text-xs">Complété</span></td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <td class="py-3 px-2 text-sm">#TR-7252</td>
+                                    <td class="py-3 px-2 text-sm">Thomas Petit</td>
+                                    <td class="py-3 px-2 text-sm">Dépôt</td>
+                                    <td class="py-3 px-2 text-sm font-medium text-green-600">+$200.00</td>
+                                    <td class="py-3 px-2 text-sm">12 Juin 2023, 09:30</td>
+                                    <td class="py-3 px-2 text-sm"><span class="px-2 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900 text-yellow-600 text-xs">En attente</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Liste utilisateurs récents -->
+                <div class="bg-white dark:bg-dark-card p-4 rounded-lg shadow-md">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold">Nouveaux utilisateurs</h3>
+                        <a href="#" class="text-sm text-primary">Voir tout</a>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="p-3 border dark:border-gray-700 rounded-lg flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center mr-3">
+                                <span>LD</span>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Louise Durand</h4>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Compte Epargne classique</p>
+                            </div>
+                        </div>
+                        <div class="p-3 border dark:border-gray-700 rounded-lg flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center mr-3">
+                                <span>RM</span>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Robert Mercier</h4>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">CMFSM Famille (3)</p>
+                            </div>
+                        </div>
+                        <div class="p-3 border dark:border-gray-700 rounded-lg flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center mr-3">
+                                <span>CL</span>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Claire Lambert</h4>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">CMFE Individu (1)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section utilisateurs -->
+            <section id="users" class="hidden mb-8">
+                <h2 class="text-2xl font-bold mb-6">Gestion des Utilisateurs</h2>
+                
+                <!-- Filtres -->
+                <div class="bg-white dark:bg-dark-card p-4 rounded-lg shadow-md mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Type de compte</label>
+                            <select class="w-full p-2 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-base">
+                                <option value="">Tous les types</option>
+                                <option value="epargne">Compte Epargne classique</option>
+                                <option value="cmfsm">CMFSM</option>
+                                <option value="cmfe">CMFE</option>
+                                <option value="cmfp">CMFP</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Catégorie</label>
+                            <select class="w-full p-2 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-base">
+                                <option value="">Toutes les catégories</option>
+                                <option value="individu">Individu (1)</option>
+                                <option value="famille_mono_2">Famille monoparentale ≤2 enfants (2)</option>
+                                <option value="famille_3">Famille biparentale ≤2 enfants (3)</option>
+                                <option value="famille_mono_3">Famille monoparentale ≥3 enfants (4)</option>
+                                <option value="famille_5">Famille biparentale ≥3 enfants (5)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Statut</label>
+                            <select class="w-full p-2 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-base">
+                                <option value="">Tous les statuts</option>
+                                <option value="actif">Actif</option>
+                                <option value="inactif">Inactif</option>
+                                <option value="suspendu">Suspendu</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Liste des utilisateurs -->
+                <div class="bg-white dark:bg-dark-card p-4 rounded-lg shadow-md">
+                    <div class="table-responsive overflow-x-auto">
+                        <table class="w-full min-w-full">
+                            <thead>
+                                <tr class="border-b dark:border-gray-700">
+                                    <th class="text-left py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400">ID</th>
+                                    <th class="text-left py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400">Nom</th>
+                                    <th class="text-left py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400">Email</th>
+                                    <th class="text-left py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400">Téléphone</th>
+                                    <th class="text-left py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400">Type de Compte</th>
+                                    <th class="text-left py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400">Catégorie</th>
+                                    <th class="text-left py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400">Solde</th>
+                                    <th class="text-left py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400">Statut</th>
+                                    <th class="text-left py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <td class="py-3 px-2 text-sm">#001</td>
+                                    <td class="py-3 px-2 text-sm">Jean Dupont</td>
+                                    <td class="py-3 px-2 text-sm">jean.dupont@email.com</td>
+                                    <td class="py-3 px-2 text-sm">+1 234 567 890</td>
+                                    <td class="py-3 px-2 text-sm">Compte Epargne classique</td>
+                                    <td class="py-3 px-2 text-sm">Individu (1)</td>
+                                    <td class="py-3 px-2 text-sm font-medium">$1,250.00</td>
+                                    <td class="py-3 px-2 text-sm"><span class="px-2 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-600 text-xs">Actif</span></td>
+                                    <td class="py-3 px-2 text-sm">
+                                        <div class="flex space-x-2">
+                                            <button class="p-1 text-blue-500 hover:text-blue-700">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="p-1 text-green-500 hover:text-green-700">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="p-1 text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <td class="py-3 px-2 text-sm">#002</td>
+                                    <td class="py-3 px-2 text-sm">Marie Martin</td>
+                                    <td class="py-3 px-2 text-sm">marie.martin@email.com</td>
+                                    <td class="py-3 px-2 text-sm">+1 345 678 901</td>
+                                    <td class="py-3 px-2 text-sm">CMFSM</td>
+                                    <td class="py-3 px-2 text-sm">Famille monoparentale ≥3 enfants (4)</td>
+                                    <td class="py-3 px-2 text-sm font-medium">$3,750.00</td>
+                                    <td class="py-3 px-2 text-sm"><span class="px-2 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-600 text-xs">Actif</span></td>
+                                    <td class="py-3 px-2 text-sm">
+                                        <div class="flex space-x-2">
+                                            <button class="p-1 text-blue-500 hover:text-blue-700">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="p-1 text-green-500 hover:text-green-700">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="p-1 text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <td class="py-3 px-2 text-sm">#003</td>
+                                    <td class="py-3 px-2 text-sm">Philippe Legrand</td>
+                                    <td class="py-3 px-2 text-sm">philippe.legrand@email.com</td>
+                                    <td class="py-3 px-2 text-sm">+1 456 789 012</td>
+                                    <td class="py-3 px-2 text-sm">CMFE</td>
+                                    <td class="py-3 px-2 text-sm">Famille biparentale ≥3 enfants (5)</td>
+                                    <td class="py-3 px-2 text-sm font-medium">$5,200.00</td>
+                                    <td class="py-3 px-2 text-sm"><span class="px-2 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900 text-yellow-600 text-xs">En attente</span></td>
+                                    <td class="py-3 px-2 text-sm">
+                                        <div class="flex space-x-2">
+                                            <button class="p-1 text-blue-500 hover:text-blue-700">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="p-1 text-green-500 hover:text-green-700">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="p-1 text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <td class="py-3 px-2 text-sm">#004</td>
+                                    <td class="py-3 px-2 text-sm">Sophie Bernard</td>
+                                    <td class="py-3 px-2 text-sm">sophie.bernard@email.com</td>
+                                    <td class="py-3 px-2 text-sm">+1 567 890 123</td>
+                                    <td class="py-3 px-2 text-sm">CMFP</td>
+                                    <td class="py-3 px-2 text-sm">Individu (1)</td>
+                                    <td class="py-3 px-2 text-sm font-medium">$2,400.00</td>
+                                    <td class="py-3 px-2 text-sm"><span class="px-2 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-600 text-xs">Actif</span></td>
+                                    <td class="py-3 px-2 text-sm">
+                                        <div class="flex space-x-2">
+                                            <button class="p-1 text-blue-500 hover:text-blue-700">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="p-1 text-green-500 hover:text-green-700">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="p-1 text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <td class="py-3 px-2 text-sm">#005</td>
+                                    <td class="py-3 px-2 text-sm">Thomas Petit</td>
+                                    <td class="py-3 px-2 text-sm">thomas.petit@email.com</td>
+                                    <td class="py-3 px-2 text-sm">+1 678 901 234</td>
+                                    <td class="py-3 px-2 text-sm">Compte Epargne classique</td>
+                                    <td class="py-3 px-2 text-sm">Individu (1)</td>
+                                    <td class="py-3 px-2 text-sm font-medium">$800.00</td>
+                                    <td class="py-3 px-2 text-sm"><span class="px-2 py-1 rounded-full bg-red-100 dark:bg-red-900 text-red-600 text-xs">Inactif</span></td>
+                                    <td class="py-3 px-2 text-sm">
+                                        <div class="flex space-x-2">
+                                            <button class="p-1 text-blue-500 hover:text-blue-700">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="p-1 text-green-500 hover:text-green-700">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="p-1 text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <div class="mt-4 flex justify-between items-center">
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                            Affichage de 1 à 5 sur 120 entrées
+                        </div>
+                        <div class="flex space-x-1">
+                            <button class="px-3 py-1 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50">Précédent</button>
+                            <button class="px-3 py-1 border dark:border-gray-700 rounded-md bg-primary text-white">1</button>
+                            <button class="px-3 py-1 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700">2</button>
+                            <button class="px-3 py-1 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700">3</button>
+                            <button class="px-3 py-1 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700">Suivant</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- JavaScript pour les graphiques et la fonctionnalité -->
+            <script>
+                // Toggle sidebar
+                const sidebar = document.getElementById('sidebar');
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                const sidebarOverlay = document.getElementById('sidebarOverlay');
+                
+                sidebarToggle.addEventListener('click', () => {
+                    if (sidebar.classList.contains('-translate-x-full')) {
+                        sidebar.classList.remove('-translate-x-full');
+                        sidebarOverlay.classList.remove('hidden');
+                    } else {
+                        sidebar.classList.add('-translate-x-full');
+                        sidebarOverlay.classList.add('hidden');
+                    }
+                });
+                
+                sidebarOverlay.addEventListener('click', () => {
+                    sidebar.classList.add('-translate-x-full');
+                    sidebarOverlay.classList.add('hidden');
+                });
+                
+                // Navigation
+                const navLinks = document.querySelectorAll('nav a');
+                const sections = document.querySelectorAll('main > section');
+                
+                navLinks.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const targetId = link.getAttribute('href').substring(1);
+                        
+                        // Hide all sections and remove active class from all links
+                        sections.forEach(section => {
+                            section.classList.add('hidden');
+                        });
+                        navLinks.forEach(navLink => {
+                            navLink.classList.remove('bg-primary', 'bg-opacity-10', 'text-primary');
+                            navLink.classList.add('hover:bg-gray-100', 'dark:hover:bg-gray-800');
+                        });
+                        
+                        // Show target section and add active class to clicked link
+                        document.getElementById(targetId).classList.remove('hidden');
+                        link.classList.add('bg-primary', 'bg-opacity-10', 'text-primary');
+                        link.classList.remove('hover:bg-gray-100', 'dark:hover:bg-gray-800');
+                        
+                        // On mobile, close the sidebar after clicking a link
+                        if (window.innerWidth < 1024) {
+                            sidebar.classList.add('-translate-x-full');
+                            sidebarOverlay.classList.add('hidden');
+                        }
+                    });
+                });
+                
+                // Make the default section visible
+                document.getElementById('dashboard').classList.remove('hidden');
+                
+                // Charts
+                function initCharts() {
+                    // Theme detection
+                    const isDarkMode = document.documentElement.classList.contains('dark');
+                    const textColor = isDarkMode ? '#E0E0E0' : '#333333';
+                    const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                    
+                    // Deposits chart
+                    const depositsCtx = document.getElementById('depositsChart').getContext('2d');
+                    const depositsChart = new Chart(depositsCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'],
+                            datasets: [{
+                                label: 'Dépôts',
+                                data: [250000, 310000, 275000, 290000, 320000, 350000, 380000, 400000, 420000, 450000, 480000, 452000],
+                                borderColor: '#5D5CDE',
+                                backgroundColor: 'rgba(93, 92, 222, 0.1)',
+                                fill: true,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: {
+                                        color: gridColor
+                                    },
+                                    ticks: {
+                                        color: textColor
+                                    }
+                                },
+                                y: {
+                                    grid: {
+                                        color: gridColor
+                                    },
+                                    ticks: {
+                                        color: textColor,
+                                        callback: function(value) {
+                                            return '$' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Account types chart
+                    const accountTypesCtx = document.getElementById('accountTypesChart').getContext('2d');
+                    const accountTypesChart = new Chart(accountTypesCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Epargne classique', 'CMFSM', 'CMFE', 'CMFP'],
+                            datasets: [{
+                                data: [35, 25, 20, 20],
+                                backgroundColor: [
+                                    '#5D5CDE',
+                                    '#4B4BA5',
+                                    '#8583FF',
+                                    '#3F3E99'
+                                ],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'right',
+                                    labels: {
+                                        color: textColor
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Update charts when theme changes
+                    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                        depositsChart.destroy();
+                        accountTypesChart.destroy();
+                        initCharts();
+                    });
+                }
+                
+                // Initialize charts after page load
+                window.addEventListener('load', initCharts);
+            </script>
+        </main>
+    </div>
+
+
+</body></html>

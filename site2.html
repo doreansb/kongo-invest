@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Comptes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        secondary: '#4F46E5',
+                        dark: {
+                            bg: '#181818',
+                            card: '#262626',
+                            text: '#E5E5E5'
+                        },
+                        light: {
+                            bg: '#FFFFFF',
+                            card: '#F3F4F6',
+                            text: '#1F2937'
+                        }
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            scroll-behavior: smooth;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        .table-container table {
+            min-width: 100%;
+        }
+        
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .scale-in {
+            animation: scaleIn 0.3s ease-out;
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #5D5CDE;
+            border-radius: 4px;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4F46E5;
+        }
+        
+        /* Table styling */
+        .custom-table th {
+            background-color: #5D5CDE;
+            color: white;
+        }
+        
+        .dark .custom-table th {
+            background-color: #4F46E5;
+        }
+    </style>
+</head>
+<body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text transition-colors duration-300">
+    <!-- Dark Mode Toggle -->
+    <div class="fixed top-4 right-4 z-50">
+        <button id="darkModeToggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none">
+            <i class="fas fa-moon dark:hidden"></i>
+            <i class="fas fa-sun hidden dark:block"></i>
+        </button>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-primary text-white py-4 shadow-lg">
+        <div class="container mx-auto px-4 md:px-6 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center mb-4 md:mb-0">
+                <i class="fas fa-university text-3xl mr-3"></i>
+                <h1 class="text-2xl font-bold">BankConnect</h1>
+            </div>
+            <nav>
+                <ul class="flex space-x-4 md:space-x-8">
+                    <li><a href="#home" class="hover:text-gray-200 transition-colors">Accueil</a></li>
+                    <li><a href="#accounts" class="hover:text-gray-200 transition-colors">Nos Comptes</a></li>
+                    <li><a href="#open-account" class="hover:text-gray-200 transition-colors">Ouvrir un Compte</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="py-12 md:py-20 px-4">
+        <div class="container mx-auto text-center">
+            <div class="max-w-3xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6">Solutions financières personnalisées</h2>
+                <p class="text-lg md:text-xl mb-8 opacity-80">Découvrez nos différentes options de comptes pour répondre à tous vos besoins financiers.</p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <a href="#accounts" class="bg-primary hover:bg-secondary text-white py-3 px-6 rounded-lg font-medium transition-colors duration-300 shadow-md">Voir nos comptes</a>
+                    <a href="#open-account" class="bg-white dark:bg-dark-card hover:bg-gray-100 dark:hover:bg-gray-700 text-primary py-3 px-6 rounded-lg font-medium transition-colors duration-300 shadow-md">Ouvrir un compte</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Accounts Section -->
+    <section id="accounts" class="py-12 bg-gray-50 dark:bg-dark-bg px-4">
+        <div class="container mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-12">Nos Comptes</h2>
+            
+            <!-- Account Tabs -->
+            <div class="flex flex-wrap justify-center mb-8 gap-2">
+                <button class="account-tab active py-2 px-4 rounded-lg bg-primary text-white" data-account="epargne">Compte Épargne</button>
+                <button class="account-tab py-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300" data-account="cmfsm">CMFSM</button>
+                <button class="account-tab py-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300" data-account="cmfe">CMFE</button>
+                <button class="account-tab py-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300" data-account="cmfp">CMFP</button>
+            </div>
+            
+            <!-- Account Content -->
+            <div class="account-content bg-white dark:bg-dark-card rounded-xl p-6 shadow-md mb-8 scale-in" id="epargne-content">
+                <h3 class="text-2xl font-semibold mb-4 text-primary">Compte Épargne Classique</h3>
+                <p class="mb-6">Le compte épargne classique est un compte épargne qui offre aux clients un taux d'intérêts mensuel de 10%, après chaque dépôt effectué du mois encours avant le 15. La somme min pour un dépôt est de 50$. C'est un compte accessible à tous les clients, pas de conditions spécifiques requises.</p>
+                
+                <div class="flex flex-col md:flex-row gap-6 mt-8">
+                    <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg flex-1 text-center">
+                        <i class="fas fa-percentage text-primary text-3xl mb-3"></i>
+                        <h4 class="font-semibold">Taux d'intérêt</h4>
+                        <p class="text-xl font-bold">10% mensuel</p>
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg flex-1 text-center">
+                        <i class="fas fa-money-bill-wave text-primary text-3xl mb-3"></i>
+                        <h4 class="font-semibold">Dépôt minimum</h4>
+                        <p class="text-xl font-bold">50$</p>
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg flex-1 text-center">
+                        <i class="fas fa-calendar-alt text-primary text-3xl mb-3"></i>
+                        <h4 class="font-semibold">Date limite</h4>
+                        <p class="text-xl font-bold">Avant le 15 du mois</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="account-content bg-white dark:bg-dark-card rounded-xl p-6 shadow-md mb-8 hidden" id="cmfsm-content">
+                <h3 class="text-2xl font-semibold mb-4 text-primary">Compte Marge pour le financement des soins médicaux (CMFSM)</h3>
+                <p class="mb-6">Le CMFSM est un compte qui offre une marge à nos clients pour le financement liés aux soins médicaux, ce compte vise les individus ainsi que les familles. Les conditions d'ouverture dépendent de la catégorie du client.</p>
+                
+                <!-- Type selector -->
+                <div class="mb-6">
+                    <label class="block text-gray-700 dark:text-gray-300 mb-2">Type de client:</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="client-type-tab active py-2 px-4 rounded-lg bg-primary text-white" data-account="cmfsm" data-type="individu">Individu</button>
+                        <button class="client-type-tab py-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300" data-account="cmfsm" data-type="famille-5">Famille (Parents + ≥3 enfants)</button>
+                        <button class="client-type-tab py-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300" data-account="cmfsm" data-type="famille-4">Famille (Monoparental + ≥3 enfants)</button>
+                        <button class="client-type-tab py-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300" data-account="cmfsm" data-type="famille-3">Famille (Parents + ≤2 enfants)</button>
+                        <button class="client-type-tab py-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300" data-account="cmfsm" data-type="famille-2">Famille (Monoparental + ≤2 enfants)</button>
+                    </div>
+                </div>
+                
+                <!-- Tables for CMFSM -->
+                <div class="table-container cmfsm-table-content" id="cmfsm-individu">
+                    <p class="mb-4">Le CMFSM pour individus est un compte qui permet à un individu majeur de faire une épargne trimestrielle pour un dépôt min de 300 $ pendant deux mois et deux semaines, soit 150$ par mois facultatif, pour débloquer au trimestre suivant un levier correspondant à la somme totale du dépôt.</p>
+                    <table class="w-full mb-6 border-collapse custom-table">
+                        <thead>
+                            <tr>
+                                <th class="border p-2">Plage de dépôt (Min)</th>
+                                <th class="border p-2">Plage de dépôt (Max)</th>
+                                <th class="border p-2">Leviers</th>
+                                <th class="border p-2">Marge Min</th>
+                                <th class="border p-2">Marge Max</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800">
+                            <tr class="border">
+                                <td class="border p-2">300$</td>
+                                <td class="border p-2">400$</td>
+                                <td class="border p-2">1 : 3</td>
+                                <td class="border p-2">900$</td>
+                                <td class="border p-2">1200$</td>
+                            </tr>
+                            <tr class="border bg-gray-50 dark:bg-gray-700">
+                                <td class="border p-2">400$</td>
+                                <td class="border p-2">500$</td>
+                                <td class="border p-2">1 : 4</td>
+                                <td class="border p-2">1600$</td>
+                                <td class="border p-2">2000$</td>
+                            </tr>
+                            <tr class="border">
+                                <td class="border p-2">500$</td>
+                                <td class="border p-2">2000$</td>
+                                <td class="border p-2">1 : 5</td>
+                                <td class="border p-2">2500$</td>
+                                <td class="border p-2">10000$</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-container cmfsm-table-content hidden" id="cmfsm-famille-5">
+                    <p class="mb-4">Conditions pour les familles avec parents et 3 enfants ou plus.</p>
+                    <table class="w-full mb-6 border-collapse custom-table">
+                        <thead>
+                            <tr>
+                                <th class="border p-2">Plage de dépôt (Min)</th>
+                                <th class="border p-2">Plage de dépôt (Max)</th>
+                                <th class="border p-2">Leviers</th>
+                                <th class="border p-2">Marge Min</th>
+                                <th class="border p-2">Marge Max</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800">
+                            <tr class="border">
+                                <td class="border p-2">500$</td>
+                                <td class="border p-2">700$</td>
+                                <td class="border p-2">1 : 3</td>
+                                <td class="border p-2">1500$</td>
+                                <td class="border p-2">2100$</td>
+                            </tr>
+                            <tr class="border bg-gray-50 dark:bg-gray-700">
+                                <td class="border p-2">700$</td>
+                                <td class="border p-2">900$</td>
+                                <td class="border p-2">1 : 4</td>
+                                <td class="border p-2">2800$</td>
+                                <td class="border p-2">3600$</td>
+                            </tr>
+                            <tr class="border">
+                                <td class="border p-2">900$</td>
+                                <td class="border p-2">2100$</td>
+                                <td class="border p-2">1 : 5</td>
+                                <td class="border p-2">4500$</td>
+                                <td class="border p-2">10500$</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Additional tables for other family types would be added here -->
+                <div class="table-container cmfsm-table-content hidden" id="cmfsm-famille-4">
+                    <p class="mb-4">Conditions pour les familles monoparentales avec 3 enfants ou plus.</p>
+                    <table class="w-full mb-6 border-collapse custom-table">
+                        <thead>
+                            <tr>
+                                <th class="border p-2">Plage de dépôt (Min)</th>
+                                <th class="border p-2">Plage de dépôt (Max)</th>
+                                <th class="border p-2">Leviers</th>
+                                <th class="border p-2">Marge Min</th>
+                                <th class="border p-2">Marge Max</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800">
+                            <tr class="border">
+                                <td class="border p-2">450$</td>
+                                <td class="border p-2">650$</td>
+                                <td class="border p-2">1 : 3</td>
+                                <td class="border p-2">1350$</td>
+                                <td class="border p-2">1950$</td>
+                            </tr>
+                            <tr class="border bg-gray-50 dark:bg-gray-700">
+                                <td class="border p-2">650$</td>
+                                <td class="border p-2">850$</td>
+                                <td class="border p-2">1 : 4</td>
+                                <td class="border p-2">2600$</td>
+                                <td class="border p-2">3400$</td>
+                            </tr>
+                            <tr class="border">
+                                <td class="border p-2">850$</td>
+                                <td class="border p-2">1800$</td>
+                                <td class="border p-2">1 : 5</td>
+                                <td class="border p-2">4250$</td>
+                                <td class="border p-2">9000$</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="table-container cmfsm-table-content hidden" id="cmfsm-famille-3">
+                    <p class="mb-4">Conditions pour les familles avec parents et 2 enfants ou moins.</p>
+                    <table class="w-full mb-6 border-collapse custom-table">
+                        <thead>
+                            <tr>
+                                <th class="border p-2">Plage de dépôt (Min)</th>
+                                <th class="border p-2">Plage de dépôt (Max)</th>
+                                <th class="border p-2">Leviers</th>
+                                <th class="border p-2">Marge Min</th>
+                                <th class="border p-2">Marge Max</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800">
+                            <tr class="border">
+                                <td class="border p-2">400$</td>
+                                <td class="border p-2">600$</td>
+                                <td class="border p-2">1 : 3</td>
+                                <td class="border p-2">1200$</td>
+                                <td class="border p-2">1800$</td>
+                            </tr>
+                            <tr class="border bg-gray-50 dark:bg-gray-700">
+                                <td class="border p-2">600$</td>
+                                <td class="border p-2">800$</td>
+                                <td class="border p-2">1 : 4</td>
+                                <td class="border p-2">2400$</td>
+                                <td class="border p-2">3200$</td>
+                            </tr>
+                            <tr class="border">
+                                <td class="border p-2">800$</td>
+                                <td class="border p-2">1500$</td>
+                                <td class="border p-2">1 : 5</td>
+                                <td class="border p-2">4000$</td>
+                                <td class="border p-2">7500$</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="table-container cmfsm-table-content hidden" id="cmfsm-famille-2">
+                    <p class="mb-4">Conditions pour les familles monoparentales avec 2 enfants ou moins.</p>
+                    <table class="w-full mb-6 border-collapse custom-table">
+                        <thead>
+                            <tr>
+                                <th class="border p-2">Plage de dépôt (Min)</th>
+                                <th class="border p-2">Plage de dépôt (Max)</th>
+                                <th class="border p-2">Leviers</th>
+                                <th class="border p-2">Marge Min</th>
+                                <th class="border p-2">Marge Max</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800">
+                            <tr class="border">
+                                <td class="border p-2">350$</td>
+                                <td class="border p-2">550$</td>
+                                <td class="border p-2">1 : 3</td>
+                                <td class="border p-2">1050$</td>
+                                <td class="border p-2">1650$</td>
+                            </tr>
+                            <tr class="border bg-gray-50 dark:bg-gray-700">
+                                <td class="border p-2">550$</td>
+                                <td class="border p-2">750$</td>
+                                <td class="border p-2">1 : 4</td>
+                                <td class="border p-2">2200$</td>
+                                <td class="border p-2">3000$</td>
+                            </tr>
+                            <tr class="border">
+                                <td class="border p-2">750$</td>
+                                <td class="border p-2">1200$</td>
+                                <td class="border p-2">1 : 5</td>
+                                <td class="border p-2">3750$</td>
+                                <td class="border p-2">6000$</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="account-content bg-white dark:bg-dark-card rounded-xl p-6 shadow-md mb-8 hidden" id="cmfe-content">
+                <h3 class="text-2xl font-semibold mb-4 text-primary">Compte marge pour le financement des études (CMFE)</h3>
+                <p class="mb-6">Le CMFE est un compte spécialisé dans le financement des études, avec des conditions adaptées aux individus et aux familles.</p>
+                
+                <!-- Type selector -->
+                <div class="mb-6">
+                    <label class="block text-gray-700 dark:text-gray-300 mb-2">Type de client:</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="client-type-tab active py-2 px-4 rounded-lg bg-primary text-white" data-account="cmfe" data-type="individu">Individu</button>
+                        <button class="client-type-tab py-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300" data-account="cmfe" data-type="famille-5">Famille (Parents + ≥3 enfants)</button>
+                        <button class="client-type-tab py-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300" data-account="cmfe" data-type="famille-4">Famille (Monoparental + ≥3 enfants)</button>
+                        <button class="client-type-tab py-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300" data-account="cmfe" data-type="famille-3">Famille (Parents + ≤2 enfants)</button>
+                        <button class="client-type-tab py-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300" data-account="cmfe" data-type="famille-2">Famille (Monoparental + ≤2 enfants)</button>
+                    </div>
+                </div>
+                
+                <!-- Tables for CMFE -->
+                <div class="table-container cmfe-table-content" id="cmfe-individu">
+                    <p class="mb-4">Conditions pour les individus.</p>
+                    <table class="w-full mb-6 border-collapse custom-table">
+                        <thead>
+                            <tr>
+                                <th class="border p-2">Plage de dépôt (Min)</th>
+                                <th class="border p-2">Plage de dépôt (Max)</th>
+                                <th class="border p-2">Leviers</th>
+                                <th class="border p-2">Marge Min</th>
+                                <th class="border p-2">Marge Max</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800">
+                            <tr class="border">
+                                <td class="border p-2">200$</td>
+                                <td class="border p-2">300$</td>
+                                <td class="border p-2">1 : 3</td>
+                                <td class="border p-2">600$</td>
+                                <td class="border p-2">900$</td>
+                            </tr>
+                            <tr class="border bg-gray-50 dark:bg-gray-700">
+                                <td class="border p-2">300$</td>
+                                <td class="border p-2">400$</td>
+                                <td class="border p-2">1 : 4</td>
+                                <td class="border p-2">1200$</td>
+                                <td class="border p-2">1600$</td>
+                            </tr>
+                            <tr class="border">
+                                <td class="border p-2">400$</td>
+                                <td class="border p-2">500$</td>
+                                <td class="border p-2">1 : 5</td>
+                                <td class="border p-2">2000$</td>
+                                <td class="border p-2">2500$</td>
+                            </tr>
+                            <tr class="border bg-gray-50 dark:bg-gray-700">
+                                <td class="border p-2">500$</td>
+                                <td class="border p-2">900$</td>
+                                <td class="border p-2">1 : 6</td>
+                                <td class="border p-2">3000$</td>
+                                <td class="border p-2">5400$</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Additional tables for CMFE family types -->
+                <!-- Similar structure as above for other family types -->
+                <div class="table-container cmfe-table-content hidden" id="cmfe-famille-5">
+                    <p class="mb-4">Conditions pour les familles avec parents et 3 enfants ou plus.</p>
+                    <table class="w-full mb-6 border-collapse custom-table">
+                        <thead>
+                            <tr>
+                                <th class="border p-2">Plage de dépôt (Min)</th>
+                                <th class="border p-2">Plage de dépôt (Max)</th>
+                                <th class="border p-2">Leviers</th>
+                                <th class="border p-2">Marge Min</th>
+                                <th class="border p-2">Marge Max</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800">
+                            <tr class="border">
+                                <td class="border p-2">500$</td>
+                                <td class="border p-2">600$</td>
+                                <td class="border p-2">1 : 3</td>
+                                <td class="border p-2">1500$</td>
+                                <td class="border p-2">1800$</td>
+                            </tr>
+                            <tr class="border bg-gray-50 dark:bg-gray-700">
+                                <td class="border p-2">600$</td>
+                                <td class="border p-2">700$</td>
+                                <td class="border p-2">1 : 4</td>
+                                <td class="border p-2">2400$</td>
+                                <td class="border p-2">2800$</td>
+                            </tr>
+                            <tr class="border">
+                                <td class="border p-2">700$</td>
+                                <td class="border p-2">800$</td>
+                                <td class="border p-2">1 : 5</td>
+                                <td class="border p-2">3500$</td>
+                                <td class="border p-2">4000$</td>
+                            </tr>
+                            <tr class="border bg-gray-50 dark:bg-gray-700">
+                                <td class="border p-2">800$</td>
+                                <td class="border p-2">2100$</td>
+                                <td class="border p-2">1 : 6</td>
+                                <td class="border p-2">4800$</td>
+                                <td class="border p-2">12600$</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Similar tables for other family types would be here -->
+            </div>
+            
+            <div class="account-content bg-white dark:bg-dark-card rounded-xl p-6 shadow-md mb-8 hidden" id="cmfp-content">
+                <h3 class="text-2xl font-semibold mb-4 text-primary">Compte marge pour le financement des projets (CMFP)</h3>
+                <p class="mb-6">Le CMFP est un compte spécialisé dans le financement de projets personnels ou familiaux.</p>
+                
+                <!-- Type selector -->
+                <div class="mb-6">
+                    <label class="block text-gray-700 dark:text-gray-300 mb-2">Type de client:</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="client-type-tab active py-2 px-4 rounded-lg bg-primary text-white" data-account="cmfp" data-type="individu">Individu</button>
+                        <button class="client-type-tab py-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300" data-account="cmfp" data-type="famille-5">Famille (Parents + ≥3 enfants)</button>
+                        <button class="client-type-tab py-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300" data-account="cmfp" data-type="famille-4">Famille (Monoparental + ≥3 enfants)</button>
+                        <button class="client-type-tab py-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300" data-account="cmfp" data-type="famille-3">Famille (Parents + ≤2 enfants)</button>
+                        <button class="client-type-tab py-2 px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300" data-account="cmfp" data-type="famille-2">Famille (Monoparental + ≤2 enfants)</button>
+                    </div>
+                </div>
+                
+                <!-- Tables for CMFP -->
+                <div class="table-container cmfp-table-content" id="cmfp-individu">
+                    <p class="mb-4">Conditions pour les individus.</p>
+                    <table class="w-full mb-6 border-collapse custom-table">
+                        <thead>
+                            <tr>
+                                <th class="border p-2">Plage de dépôt (Min)</th>
+                                <th class="border p-2">Plage de dépôt (Max)</th>
+                                <th class="border p-2">Leviers</th>
+                                <th class="border p-2">Marge Min</th>
+                                <th class="border p-2">Marge Max</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800">
+                            <tr class="border">
+                                <td class="border p-2">500$</td>
+                                <td class="border p-2">700$</td>
+                                <td class="border p-2">1 : 3</td>
+                                <td class="border p-2">1500$</td>
+                                <td class="border p-2">2100$</td>
+                            </tr>
+                            <tr class="border bg-gray-50 dark:bg-gray-700">
+                                <td class="border p-2">700$</td>
+                                <td class="border p-2">900$</td>
+                                <td class="border p-2">1 : 4</td>
+                                <td class="border p-2">2800$</td>
+                                <td class="border p-2">3600$</td>
+                            </tr>
+                            <tr class="border">
+                                <td class="border p-2">900$</td>
+                                <td class="border p-2">2100$</td>
+                                <td class="border p-2">1 : 5</td>
+                                <td class="border p-2">4500$</td>
+                                <td class="border p-2">10500$</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Additional tables for CMFP family types -->
+                <!-- Similar structure as above for other family types -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Open Account Section -->
+    <section id="open-account" class="py-12 px-4">
+        <div class="container mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-12">Ouvrir un Compte</h2>
+            
+            <div class="bg-white dark:bg-dark-card rounded-xl p-6 shadow-md max-w-3xl mx-auto">
+                <h3 class="text-2xl font-semibold mb-6 text-primary">Formulaire d'ouverture de compte</h3>
+                
+                <!-- Account Type Selector -->
+                <div class="mb-6">
+                    <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Type de compte:</label>
+                    <select id="account-type" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="epargne">Compte Épargne Classique</option>
+                        <option value="cmfsm">CMFSM - Financement des soins médicaux</option>
+                        <option value="cmfe">CMFE - Financement des études</option>
+                        <option value="cmfp">CMFP - Financement des projets</option>
+                    </select>
+                </div>
+                
+                <!-- Client Type for margin accounts -->
+                <div class="mb-6 client-type-container hidden">
+                    <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Type de client:</label>
+                    <select id="client-type" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="individu">Individu</option>
+                        <option value="famille-5">Famille (Parents + ≥3 enfants)</option>
+                        <option value="famille-4">Famille (Monoparental + ≥3 enfants)</option>
+                        <option value="famille-3">Famille (Parents + ≤2 enfants)</option>
+                        <option value="famille-2">Famille (Monoparental + ≤2 enfants)</option>
+                    </select>
+                </div>
+                
+                <!-- Personal Information -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-medium mb-4 text-gray-800 dark:text-gray-200">Informations personnelles</h4>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 dark:text-gray-300 mb-2">Nom complet:</label>
+                            <input type="text" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Votre nom complet" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 dark:text-gray-300 mb-2">Numéro de téléphone:</label>
+                            <input type="tel" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Votre numéro de téléphone" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 dark:text-gray-300 mb-2">Adresse e-mail:</label>
+                            <input type="email" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Votre adresse e-mail" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ID Verification -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-medium mb-4 text-gray-800 dark:text-gray-200">Vérification d'identité</h4>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 dark:text-gray-300 mb-2">Type de pièce d'identité:</label>
+                        <select class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="passport">Passeport</option>
+                            <option value="id_card">Carte d'électeur</option>
+                            <option value="license">Permis de conduire</option>
+                            <option value="other">Autre pièce</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 dark:text-gray-300 mb-2">Numéro de pièce d'identité:</label>
+                        <input type="text" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Numéro de votre pièce d'identité" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 dark:text-gray-300 mb-2">Télécharger une copie de votre pièce d'identité:</label>
+                        <div class="flex items-center justify-center w-full">
+                            <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-800 hover:bg-gray-100">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <i class="fas fa-upload mb-3 text-gray-400 text-xl"></i>
+                                    <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-medium">Cliquez pour télécharger</span> ou glissez-déposez</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">PNG, JPG ou PDF (MAX. 5 Mo)</p>
+                                </div>
+                                <input type="file" class="hidden" />
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Terms and Conditions -->
+                <div class="mb-6">
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            <input id="terms" type="checkbox" class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary dark:bg-gray-700 dark:border-gray-600" required>
+                        </div>
+                        <label for="terms" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                            J'accepte les <a href="#" class="text-primary hover:underline">termes et conditions</a> et la <a href="#" class="text-primary hover:underline">politique de confidentialité</a>.
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Submit Button -->
+                <button type="submit" class="w-full bg-primary hover:bg-secondary text-white py-3 px-6 rounded-lg font-medium transition-all duration-300 shadow-md">
+                    Soumettre ma demande
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 px-4">
+        <div class="container mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">BankConnect</h3>
+                    <p class="text-gray-300 mb-4">Des solutions financières innovantes pour tous vos besoins.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-white hover:text-primary transition-colors"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white hover:text-primary transition-colors"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-white hover:text-primary transition-colors"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-white hover:text-primary transition-colors"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Liens rapides</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#home" class="text-gray-300 hover:text-white transition-colors">Accueil</a></li>
+                        <li><a href="#accounts" class="text-gray-300 hover:text-white transition-colors">Nos Comptes</a></li>
+                        <li><a href="#open-account" class="text-gray-300 hover:text-white transition-colors">Ouvrir un Compte</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">À propos</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Contact</h3>
+                    <p class="text-gray-300 mb-2"><i class="fas fa-map-marker-alt mr-2"></i> 123 Avenue Centrale, Ville</p>
+                    <p class="text-gray-300 mb-2"><i class="fas fa-phone mr-2"></i> +1 234 567 890</p>
+                    <p class="text-gray-300"><i class="fas fa-envelope mr-2"></i> info@bankconnect.com</p>
+                </div>
+            </div>
+            
+            <hr class="my-6 border-gray-700">
+            
+            <div class="text-center text-gray-400">
+                <p>&copy; 2023 BankConnect. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Dark Mode Toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        
+        // Check for saved dark mode preference or use system preference
+        if (localStorage.getItem('darkMode') === 'enabled' || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && localStorage.getItem('darkMode') !== 'disabled')) {
+            document.documentElement.classList.add('dark');
+        }
+        
+        darkModeToggle.addEventListener('click', () => {
+            // Toggle dark class on documentElement (html tag)
+            document.documentElement.classList.toggle('dark');
+            
+            // Save preference to localStorage
+            if (document.documentElement.classList.contains('dark')) {
+                localStorage.setItem('darkMode', 'enabled');
+            } else {
+                localStorage.setItem('darkMode', 'disabled');
+            }
+        });
+        
+        // Listen for system preference changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            if (localStorage.getItem('darkMode') === null) {
+                if (e.matches) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+        });
+        
+        // Account Type Tabs
+        const accountTabs = document.querySelectorAll('.account-tab');
+        const accountContents = document.querySelectorAll('.account-content');
+        
+        accountTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                accountTabs.forEach(t => t.classList.remove('active', 'bg-primary', 'text-white'));
+                accountTabs.forEach(t => t.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300'));
+                
+                // Add active class to clicked tab
+                tab.classList.add('active', 'bg-primary', 'text-white');
+                tab.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                
+                // Hide all content sections
+                accountContents.forEach(content => content.classList.add('hidden'));
+                
+                // Show corresponding content
+                const targetContent = document.getElementById(`${tab.dataset.account}-content`);
+                targetContent.classList.remove('hidden');
+                targetContent.classList.add('scale-in');
+            });
+        });
+        
+        // Client Type Tabs (for CMFSM, CMFE, CMFP)
+        const clientTypeTabs = document.querySelectorAll('.client-type-tab');
+        
+        clientTypeTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Get account type and select only tabs for that account
+                const accountType = tab.dataset.account;
+                const accountTabs = document.querySelectorAll(`.client-type-tab[data-account="${accountType}"]`);
+                
+                // Remove active class from account-specific tabs
+                accountTabs.forEach(t => t.classList.remove('active', 'bg-primary', 'text-white'));
+                accountTabs.forEach(t => t.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300'));
+                
+                // Add active class to clicked tab
+                tab.classList.add('active', 'bg-primary', 'text-white');
+                tab.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                
+                // Hide all content sections for this account
+                const accountTableContents = document.querySelectorAll(`.${accountType}-table-content`);
+                accountTableContents.forEach(content => content.classList.add('hidden'));
+                
+                // Show corresponding content
+                const targetContent = document.getElementById(`${accountType}-${tab.dataset.type}`);
+                targetContent.classList.remove('hidden');
+                targetContent.classList.add('fade-in');
+            });
+        });
+        
+        // Account form type changes
+        const accountTypeSelect = document.getElementById('account-type');
+        const clientTypeContainer = document.querySelector('.client-type-container');
+        
+        accountTypeSelect.addEventListener('change', () => {
+            if (accountTypeSelect.value === 'epargne') {
+                clientTypeContainer.classList.add('hidden');
+            } else {
+                clientTypeContainer.classList.remove('hidden');
+            }
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Form submission (prevent default and show success message)
+        const form = document.querySelector('#open-account form') || document.querySelector('#open-account');
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Traitement en cours...';
+            submitButton.disabled = true;
+            
+            // Simulate API call
+            setTimeout(() => {
+                // Create success message
+                const successMessage = document.createElement('div');
+                successMessage.className = 'mt-4 p-4 bg-green-100 text-green-800 rounded-lg';
+                successMessage.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Votre demande a été soumise avec succès. Nous vous contacterons sous peu.';
+                
+                // Insert after form
+                this.appendChild(successMessage);
+                
+                // Reset button
+                submitButton.innerHTML = 'Soumettre ma demande';
+                submitButton.disabled = false;
+                
+                // Scroll to success message
+                successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Remove success message after 5 seconds
+                setTimeout(() => {
+                    successMessage.remove();
+                }, 5000);
+            }, 1500);
+        });
+    </script>
+</body>
+</html>

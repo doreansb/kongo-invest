@@ -1,0 +1,1130 @@
+<!DOCTYPE html><html lang="fr"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Administrateur</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        primaryLight: '#7978E9',
+                        primaryDark: '#4A49B7',
+                        light: {
+                            background: '#FFFFFF',
+                            text: '#1F2937',
+                            card: '#F9FAFB'
+                        },
+                        dark: {
+                            background: '#181818',
+                            text: '#F3F4F6',
+                            card: '#262626'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #555;
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+        
+        /* Table scrolling */
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        /* Dark mode transition */
+        * {
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+        
+        /* Chart tooltip */
+        .chart-tooltip {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 4px;
+            padding: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .dark .chart-tooltip {
+            background: rgba(38, 38, 38, 0.9);
+            color: #F3F4F6;
+        }
+        
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        .fade-in-delay-1 {
+            opacity: 0;
+            animation: fadeIn 0.3s ease-out 0.1s forwards;
+        }
+        
+        .fade-in-delay-2 {
+            opacity: 0;
+            animation: fadeIn 0.3s ease-out 0.2s forwards;
+        }
+        
+        .fade-in-delay-3 {
+            opacity: 0;
+            animation: fadeIn 0.3s ease-out 0.3s forwards;
+        }
+    </style>
+</head>
+<body class="bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text min-h-screen flex flex-col">
+    <!-- Check for dark mode -->
+    <script>
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+
+    <!-- Navigation Top Bar -->
+    <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <!-- Mobile menu button -->
+                    <div class="flex items-center md:hidden">
+                        <button id="mobile-menu-button" type="button" class="text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary">
+                            <span class="sr-only">Ouvrir le menu</span>
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                    </div>
+                    <!-- Logo -->
+                    <div class="flex-shrink-0 flex items-center ml-2 md:ml-0">
+                        <span class="text-2xl font-bold text-primary"><img src="Kongo Invest.png" alt="" width="100px"></span>
+                    </div>
+                </div>
+                <!-- Right side navigation items -->
+                <div class="flex items-center">
+                    <div class="flex items-center">
+                        <!-- Notifications -->
+                        <button class="p-2 rounded-full text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary relative">
+                            <span class="sr-only">Notifications</span>
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute top-1 right-1 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-xs text-white">3</span>
+                        </button>
+                        <!-- Messages -->
+                        <button class="p-2 ml-2 rounded-full text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary relative">
+                            <span class="sr-only">Messages</span>
+                            <i class="fas fa-envelope text-xl"></i>
+                            <span class="absolute top-1 right-1 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-xs text-white">5</span>
+                        </button>
+                        <!-- Dark mode toggle -->
+                        <button id="dark-mode-toggle" class="p-2 ml-2 rounded-full text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary">
+                            <span class="sr-only">Mode sombre</span>
+                            <i class="fas fa-moon dark:hidden text-xl"></i>
+                            <i class="fas fa-sun hidden dark:block text-xl"></i>
+                        </button>
+                        <!-- Profile dropdown -->
+                        <div class="ml-3 relative">
+                            <div>
+                                <button type="button" class="max-w-xs flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
+                                    <span class="sr-only">Ouvrir le menu utilisateur</span>
+                                    <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80" alt="Admin Photo">
+                                </button>
+                            </div>
+                            <!-- Dropdown menu, hidden by default -->
+                            <div id="user-dropdown" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-10" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" role="menuitem">Mon Profil</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" role="menuitem">Paramètres</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" role="menuitem">Déconnexion</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="hidden md:block bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 w-64 flex-shrink-0 overflow-y-auto">
+            <div class="px-4 py-6">
+                <nav class="space-y-1">
+                    <a href="#" class="flex items-center px-4 py-3 text-sm font-medium rounded-md bg-primary bg-opacity-10 text-primary dark:text-primaryLight">
+                        <i class="fas fa-tachometer-alt mr-3 text-primary dark:text-primaryLight"></i>
+                        Tableau de bord
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                        <i class="fas fa-users mr-3 text-gray-400 dark:text-gray-500"></i>
+                        Utilisateurs
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                        <i class="fas fa-wallet mr-3 text-gray-400 dark:text-gray-500"></i>
+                        Comptes
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                        <i class="fas fa-exchange-alt mr-3 text-gray-400 dark:text-gray-500"></i>
+                        Transactions
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                        <i class="fas fa-chart-line mr-3 text-gray-400 dark:text-gray-500"></i>
+                        Rapports
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                        <i class="fas fa-cog mr-3 text-gray-400 dark:text-gray-500"></i>
+                        Paramètres
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Mobile Sidebar (hidden by default) -->
+        <div id="mobile-sidebar" class="fixed inset-0 flex z-40 md:hidden hidden" role="dialog" aria-modal="true">
+            <div class="fixed inset-0 bg-gray-600 bg-opacity-75" aria-hidden="true" id="mobile-sidebar-backdrop"></div>
+            <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-gray-800">
+                <div class="absolute top-0 right-0 -mr-12 pt-2">
+                    <button id="close-sidebar-button" type="button" class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                        <span class="sr-only">Fermer le menu</span>
+                        <i class="fas fa-times text-white"></i>
+                    </button>
+                </div>
+                <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+                    <div class="flex-shrink-0 flex items-center px-4">
+                        <span class="text-2xl font-bold text-primary">Finance<span class="text-primaryLight">Admin</span></span>
+                    </div>
+                    <nav class="mt-5 px-2 space-y-1">
+                        <a href="#" class="flex items-center px-4 py-3 text-base font-medium rounded-md bg-primary bg-opacity-10 text-primary dark:text-primaryLight">
+                            <i class="fas fa-tachometer-alt mr-3 text-primary dark:text-primaryLight"></i>
+                            Tableau de bord
+                        </a>
+                        <a href="#" class="flex items-center px-4 py-3 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                            <i class="fas fa-users mr-3 text-gray-400 dark:text-gray-500"></i>
+                            Utilisateurs
+                        </a>
+                        <a href="#" class="flex items-center px-4 py-3 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                            <i class="fas fa-wallet mr-3 text-gray-400 dark:text-gray-500"></i>
+                            Comptes
+                        </a>
+                        <a href="#" class="flex items-center px-4 py-3 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                            <i class="fas fa-exchange-alt mr-3 text-gray-400 dark:text-gray-500"></i>
+                            Transactions
+                        </a>
+                        <a href="#" class="flex items-center px-4 py-3 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                            <i class="fas fa-chart-line mr-3 text-gray-400 dark:text-gray-500"></i>
+                            Rapports
+                        </a>
+                        <a href="#" class="flex items-center px-4 py-3 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                            <i class="fas fa-cog mr-3 text-gray-400 dark:text-gray-500"></i>
+                            Paramètres
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            <div class="flex-shrink-0 w-14"></div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50 dark:bg-gray-900">
+            <div class="max-w-7xl mx-auto">
+                <!-- Page Header -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                    <div>
+                        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white fade-in">Tableau de bord administrateur</h1>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400 fade-in-delay-1">Bienvenue dans votre panneau d'administration financière</p>
+                    </div>
+                    <div class="mt-4 md:mt-0">
+                        <span class="shadow-sm rounded-md fade-in-delay-2">
+                            <button type="button" class="inline-flex items-center px-4 py-2 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-primary hover:bg-primaryDark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                <i class="fas fa-plus mr-2"></i> Nouvel utilisateur
+                            </button>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <!-- Total Users -->
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg fade-in">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-indigo-500 rounded-md p-3">
+                                    <i class="fas fa-users text-white text-xl"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Utilisateurs</dt>
+                                        <dd>
+                                            <div class="text-lg font-semibold text-gray-900 dark:text-white">2,543</div>
+                                        </dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3">
+                            <div class="text-sm">
+                                <a href="#" class="font-medium text-primary hover:text-primaryDark">
+                                    Voir tous les utilisateurs
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Active Accounts -->
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg fade-in-delay-1">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+                                    <i class="fas fa-wallet text-white text-xl"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Comptes actifs</dt>
+                                        <dd>
+                                            <div class="text-lg font-semibold text-gray-900 dark:text-white">3,752</div>
+                                        </dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3">
+                            <div class="text-sm">
+                                <a href="#" class="font-medium text-primary hover:text-primaryDark">
+                                    Voir tous les comptes
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Monthly Deposits -->
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg fade-in-delay-2">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                                    <i class="fas fa-money-check-alt text-white text-xl"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Dépôts ce mois</dt>
+                                        <dd>
+                                            <div class="text-lg font-semibold text-gray-900 dark:text-white">$245,890</div>
+                                        </dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3">
+                            <div class="text-sm">
+                                <a href="#" class="font-medium text-primary hover:text-primaryDark">
+                                    Voir tous les dépôts
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Total Balance -->
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg fade-in-delay-3">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+                                    <i class="fas fa-dollar-sign text-white text-xl"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Solde total</dt>
+                                        <dd>
+                                            <div class="text-lg font-semibold text-gray-900 dark:text-white">$1,245,890</div>
+                                        </dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3">
+                            <div class="text-sm">
+                                <a href="#" class="font-medium text-primary hover:text-primaryDark">
+                                    Voir les détails
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Account Type Distribution -->
+                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg fade-in">
+                        <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Distribution des types de comptes</h3>
+                        </div>
+                        <div class="p-5">
+                            <div class="h-72">
+                                <canvas id="accountTypeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Deposits Trend -->
+                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg fade-in-delay-1">
+                        <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Tendance des dépôts mensuels</h3>
+                        </div>
+                        <div class="p-5">
+                            <div class="h-72">
+                                <canvas id="depositTrendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Users Table -->
+                <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6 fade-in">
+                    <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Utilisateurs récents</h3>
+                        <div class="flex items-center">
+                            <div class="relative mr-2">
+                                <input type="text" placeholder="Rechercher..." class="block w-full text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-primary focus:border-primary">
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                            </div>
+                            <button class="bg-gray-100 dark:bg-gray-700 p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">
+                                <i class="fas fa-filter"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Utilisateur</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Email</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type de compte</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Solde</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Statut</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80" alt="">
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900 dark:text-white">Marie Dupont</div>
+                                                <div class="text-sm text-gray-500 dark:text-gray-400">ID: 34928</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-white">marie.dupont@example.com</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-white">Compte Épargne Classique</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-white">$5,234.00</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+                                            Actif
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                        <div class="flex space-x-2">
+                                            <button class="text-primary hover:text-primaryDark"><i class="fas fa-eye"></i></button>
+                                            <button class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
+                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80" alt="">
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900 dark:text-white">Jean Martin</div>
+                                                <div class="text-sm text-gray-500 dark:text-gray-400">ID: 34929</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-white">jean.martin@example.com</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-white">CMFSM (Individu)</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-white">$3,456.50</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+                                            Actif
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                        <div class="flex space-x-2">
+                                            <button class="text-primary hover:text-primaryDark"><i class="fas fa-eye"></i></button>
+                                            <button class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
+                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80" alt="">
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900 dark:text-white">Camille Bernard</div>
+                                                <div class="text-sm text-gray-500 dark:text-gray-400">ID: 34930</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-white">camille.bernard@example.com</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-white">CMFE (Famille)</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-white">$9,123.75</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+                                            Actif
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                        <div class="flex space-x-2">
+                                            <button class="text-primary hover:text-primaryDark"><i class="fas fa-eye"></i></button>
+                                            <button class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
+                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80" alt="">
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900 dark:text-white">Paul Dubois</div>
+                                                <div class="text-sm text-gray-500 dark:text-gray-400">ID: 34931</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-white">paul.dubois@example.com</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-white">CMFP (Individu)</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-white">$7,891.00</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">
+                                            En attente
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                        <div class="flex space-x-2">
+                                            <button class="text-primary hover:text-primaryDark"><i class="fas fa-eye"></i></button>
+                                            <button class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
+                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="px-5 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                            Affichage de 1 à 4 sur 100 entrées
+                        </div>
+                        <div class="flex space-x-1">
+                            <button class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">Précédent</button>
+                            <button class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-white bg-primary hover:bg-primaryDark">1</button>
+                            <button class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">2</button>
+                            <button class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">3</button>
+                            <button class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">Suivant</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transactions and Deposits Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Latest Transactions -->
+                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg fade-in">
+                        <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Dernières transactions</h3>
+                            <a href="#" class="text-sm font-medium text-primary hover:text-primaryDark">
+                                Voir tout
+                            </a>
+                        </div>
+                        <div class="overflow-y-auto" style="max-height: 400px;">
+                            <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <li class="px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="bg-green-100 dark:bg-green-900 p-2 rounded-full">
+                                                <i class="fas fa-arrow-down text-green-600 dark:text-green-400"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">Dépôt</p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">Marie Dupont • ID: 34928</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm font-medium text-green-600 dark:text-green-400">+$300.00</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Aujourd'hui, 14:32</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="bg-red-100 dark:bg-red-900 p-2 rounded-full">
+                                                <i class="fas fa-arrow-up text-red-600 dark:text-red-400"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">Retrait</p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">Jean Martin • ID: 34929</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm font-medium text-red-600 dark:text-red-400">-$150.00</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Aujourd'hui, 13:15</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="bg-green-100 dark:bg-green-900 p-2 rounded-full">
+                                                <i class="fas fa-arrow-down text-green-600 dark:text-green-400"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">Dépôt</p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">Camille Bernard • ID: 34930</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm font-medium text-green-600 dark:text-green-400">+$500.00</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Aujourd'hui, 10:45</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="bg-blue-100 dark:bg-blue-900 p-2 rounded-full">
+                                                <i class="fas fa-exchange-alt text-blue-600 dark:text-blue-400"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">Transfert</p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">Paul Dubois • ID: 34931</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm font-medium text-blue-600 dark:text-blue-400">$200.00</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Hier, 18:22</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="bg-green-100 dark:bg-green-900 p-2 rounded-full">
+                                                <i class="fas fa-arrow-down text-green-600 dark:text-green-400"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">Dépôt</p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">Sophie Leroy • ID: 34932</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm font-medium text-green-600 dark:text-green-400">+$350.00</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Hier, 15:48</p>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Deposits -->
+                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg fade-in-delay-1">
+                        <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Dépôts du mois</h3>
+                            <a href="#" class="text-sm font-medium text-primary hover:text-primaryDark">
+                                Voir tout
+                            </a>
+                        </div>
+                        <div class="overflow-y-auto" style="max-height: 400px;">
+                            <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <li class="px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80" alt="">
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">Marie Dupont</p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">Compte Épargne Classique</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">$300.00</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Aujourd'hui</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80" alt="">
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">Camille Bernard</p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">CMFE (Famille)</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">$500.00</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Aujourd'hui</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80" alt="">
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">Paul Dubois</p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">CMFP (Individu)</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">$700.00</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Hier</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80" alt="">
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">Sophie Leroy</p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">Compte Épargne Classique</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">$350.00</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Hier</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80" alt="">
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">Jean Martin</p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">CMFSM (Individu)</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">$450.00</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">3 jours</p>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Account Types Overview -->
+                <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6 fade-in">
+                    <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Vue d'ensemble des types de comptes utilisateurs</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type de compte</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Utilisateurs</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Solde total</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Dépôts mensuels</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Croissance</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">Compte Épargne Classique</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">1,245</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">$425,680</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">$87,450</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="text-green-600 dark:text-green-400 mr-2">
+                                                <i class="fas fa-arrow-up"></i> 12%
+                                            </span>
+                                            <div class="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                                <div class="bg-green-500 h-2 rounded-full" style="width: 70%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">CMFSM (Individu)</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">876</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">$312,560</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">$45,320</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="text-green-600 dark:text-green-400 mr-2">
+                                                <i class="fas fa-arrow-up"></i> 8%
+                                            </span>
+                                            <div class="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                                <div class="bg-green-500 h-2 rounded-full" style="width: 60%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">CMFSM (Famille)</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">542</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">$278,450</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">$38,760</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="text-green-600 dark:text-green-400 mr-2">
+                                                <i class="fas fa-arrow-up"></i> 15%
+                                            </span>
+                                            <div class="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                                <div class="bg-green-500 h-2 rounded-full" style="width: 85%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">CMFE (Individu)</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">423</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">$105,780</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">$26,540</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="text-red-600 dark:text-red-400 mr-2">
+                                                <i class="fas fa-arrow-down"></i> 3%
+                                            </span>
+                                            <div class="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                                <div class="bg-red-500 h-2 rounded-full" style="width: 35%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">CMFE (Famille)</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">289</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">$98,420</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">$21,350</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="text-green-600 dark:text-green-400 mr-2">
+                                                <i class="fas fa-arrow-up"></i> 6%
+                                            </span>
+                                            <div class="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                                <div class="bg-green-500 h-2 rounded-full" style="width: 55%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">CMFP (Individu)</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">168</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">$25,000</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">$12,470</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="text-green-600 dark:text-green-400 mr-2">
+                                                <i class="fas fa-arrow-up"></i> 9%
+                                            </span>
+                                            <div class="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                                <div class="bg-green-500 h-2 rounded-full" style="width: 65%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Initialize Charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Chart colors
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const textColor = isDarkMode ? '#F3F4F6' : '#1F2937';
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            
+            // Account Type Distribution Chart
+            const accountTypeCtx = document.getElementById('accountTypeChart').getContext('2d');
+            const accountTypeChart = new Chart(accountTypeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Épargne Classique', 'CMFSM (Individu)', 'CMFSM (Famille)', 'CMFE (Individu)', 'CMFE (Famille)', 'CMFP'],
+                    datasets: [{
+                        data: [35, 25, 15, 12, 8, 5],
+                        backgroundColor: [
+                            '#6366F1', // Indigo
+                            '#8B5CF6', // Violet
+                            '#EC4899', // Pink
+                            '#F59E0B', // Amber
+                            '#10B981', // Emerald
+                            '#3B82F6'  // Blue
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    size: 12
+                                },
+                                color: textColor,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: isDarkMode ? 'rgba(38, 38, 38, 0.9)' : 'rgba(255, 255, 255, 0.8)',
+                            titleColor: textColor,
+                            bodyColor: textColor,
+                            borderColor: gridColor,
+                            borderWidth: 1,
+                            padding: 10,
+                            displayColors: true,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw;
+                                    const percentage = Math.round((value / context.dataset.data.reduce((a, b) => a + b, 0)) * 100);
+                                    return `${label}: ${percentage}% (${value})`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%',
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+
+            // Monthly Deposits Trend Chart
+            const depositTrendCtx = document.getElementById('depositTrendChart').getContext('2d');
+            const depositTrendChart = new Chart(depositTrendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'],
+                    datasets: [{
+                        label: 'Dépôts 2023',
+                        data: [65000, 78000, 92000, 88000, 97000, 110000, 120000, 135000, 142000, 155000, 180000, 210000],
+                        fill: false,
+                        borderColor: '#5D5CDE',
+                        tension: 0.3,
+                        pointBackgroundColor: '#5D5CDE',
+                        pointBorderColor: isDarkMode ? '#262626' : '#FFFFFF',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }, {
+                        label: 'Dépôts 2022',
+                        data: [50000, 60000, 75000, 70000, 80000, 90000, 95000, 105000, 115000, 125000, 140000, 160000],
+                        fill: false,
+                        borderColor: '#9CA3AF',
+                        borderDash: [5, 5],
+                        tension: 0.3,
+                        pointBackgroundColor: '#9CA3AF',
+                        pointBorderColor: isDarkMode ? '#262626' : '#FFFFFF',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 12
+                                },
+                                color: textColor,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: isDarkMode ? 'rgba(38, 38, 38, 0.9)' : 'rgba(255, 255, 255, 0.8)',
+                            titleColor: textColor,
+                            bodyColor: textColor,
+                            borderColor: gridColor,
+                            borderWidth: 1,
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.dataset.label || '';
+                                    const value = context.raw;
+                                    return `${label}: $${value.toLocaleString()}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor,
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Dark mode toggle
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            darkModeToggle.addEventListener('click', function() {
+                document.documentElement.classList.toggle('dark');
+                
+                // Update chart colors when dark mode changes
+                const newIsDarkMode = document.documentElement.classList.contains('dark');
+                const newTextColor = newIsDarkMode ? '#F3F4F6' : '#1F2937';
+                const newGridColor = newIsDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                
+                // Update chart theme
+                accountTypeChart.options.plugins.legend.labels.color = newTextColor;
+                accountTypeChart.options.plugins.tooltip.backgroundColor = newIsDarkMode ? 'rgba(38, 38, 38, 0.9)' : 'rgba(255, 255, 255, 0.8)';
+                accountTypeChart.options.plugins.tooltip.titleColor = newTextColor;
+                accountTypeChart.options.plugins.tooltip.bodyColor = newTextColor;
+                accountTypeChart.options.plugins.tooltip.borderColor = newGridColor;
+                accountTypeChart.update();
+                
+                depositTrendChart.options.plugins.legend.labels.color = newTextColor;
+                depositTrendChart.options.plugins.tooltip.backgroundColor = newIsDarkMode ? 'rgba(38, 38, 38, 0.9)' : 'rgba(255, 255, 255, 0.8)';
+                depositTrendChart.options.plugins.tooltip.titleColor = newTextColor;
+                depositTrendChart.options.plugins.tooltip.bodyColor = newTextColor;
+                depositTrendChart.options.plugins.tooltip.borderColor = newGridColor;
+                depositTrendChart.options.scales.x.grid.color = newGridColor;
+                depositTrendChart.options.scales.x.ticks.color = newTextColor;
+                depositTrendChart.options.scales.y.grid.color = newGridColor;
+                depositTrendChart.options.scales.y.ticks.color = newTextColor;
+                depositTrendChart.update();
+            });
+
+            // Mobile menu toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileSidebar = document.getElementById('mobile-sidebar');
+            const closeSidebarButton = document.getElementById('close-sidebar-button');
+            const mobileSidebarBackdrop = document.getElementById('mobile-sidebar-backdrop');
+
+            mobileMenuButton.addEventListener('click', function() {
+                mobileSidebar.classList.remove('hidden');
+            });
+
+            closeSidebarButton.addEventListener('click', function() {
+                mobileSidebar.classList.add('hidden');
+            });
+
+            mobileSidebarBackdrop.addEventListener('click', function() {
+                mobileSidebar.classList.add('hidden');
+            });
+
+            // User dropdown toggle
+            const userMenuButton = document.getElementById('user-menu-button');
+            const userDropdown = document.getElementById('user-dropdown');
+
+            userMenuButton.addEventListener('click', function() {
+                userDropdown.classList.toggle('hidden');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!userMenuButton.contains(event.target) && !userDropdown.contains(event.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+
+            // Handle window resize for responsive adjustments
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 768 && !mobileSidebar.classList.contains('hidden')) {
+                    mobileSidebar.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+
+
+</body></html>
