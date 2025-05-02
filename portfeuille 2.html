@@ -1,0 +1,365 @@
+<!DOCTYPE html><html lang="fr"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KONGO INVEST - Dashboard Client</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        secondary: '#4B4ABA',
+                        accent: '#7B7AE6',
+                        dark: {
+                            bg: '#181818',
+                            card: '#222222',
+                            text: '#E0E0E0'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 dark:bg-dark-bg text-gray-800 dark:text-dark-text transition-colors duration-200">
+    <!-- Detect dark mode -->
+    <script>
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+
+    <div class="container mx-auto px-4 py-6 max-w-7xl">
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-primary">KONGO INVEST</h1>
+                    <p class="text-gray-600 dark:text-gray-400">Gestion du Portefeuille et du Solde Client</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="bg-white dark:bg-dark-card rounded-lg shadow p-3">
+                        <div class="text-sm text-gray-500 dark:text-gray-400">Date Actuelle</div>
+                        <div class="text-lg font-semibold" id="current-date">--/--/----</div>
+                    </div>
+                    <div class="bg-primary text-white rounded-lg shadow p-3">
+                        <div class="text-sm">Trimestre Actuel</div>
+                        <div class="text-lg font-semibold" id="current-quarter">T-</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white dark:bg-dark-card rounded-lg shadow p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold">Dépôt Total</h3>
+                    <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
+                        <i class="ri-money-dollar-circle-line text-blue-500 dark:text-blue-300 text-xl"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold mb-2" id="current-deposit">0</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                    Dépôt du trimestre en cours
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-dark-card rounded-lg shadow p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold">Marge Brute</h3>
+                    <div class="p-2 bg-green-100 dark:bg-green-900 rounded-full">
+                        <i class="ri-line-chart-line text-green-500 dark:text-green-300 text-xl"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold mb-2" id="current-gross-margin">0</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                    Marge brute actuelle (obtenue)
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-dark-card rounded-lg shadow p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold">Marge Nette</h3>
+                    <div class="p-2 bg-purple-100 dark:bg-purple-900 rounded-full">
+                        <i class="ri-funds-line text-purple-500 dark:text-purple-300 text-xl"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold mb-2" id="current-net-margin">0</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                    Marge nette actuelle (obtenue)
+                </div>
+            </div>
+        </div>
+
+        <!-- Quarter Selection -->
+        <div class="mb-8">
+            <div class="bg-white dark:bg-dark-card rounded-lg shadow p-4">
+                <div class="flex flex-wrap gap-2 justify-center">
+                    <button class="quarter-btn px-4 py-2 rounded-md border-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors" data-quarter="1">T1 (Jan-Mar)</button>
+                    <button class="quarter-btn px-4 py-2 rounded-md border-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors" data-quarter="2">T2 (Avr-Jun)</button>
+                    <button class="quarter-btn px-4 py-2 rounded-md border-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors" data-quarter="3">T3 (Jul-Sep)</button>
+                    <button class="quarter-btn px-4 py-2 rounded-md border-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors" data-quarter="4">T4 (Oct-Dec)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quarterly Details -->
+        <div class="mb-8">
+            <div class="bg-white dark:bg-dark-card rounded-lg shadow overflow-hidden">
+                <div class="p-4 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
+                    <h2 class="text-xl font-semibold" id="quarter-details-title">Détails du Trimestre 1</h2>
+                </div>
+                <div class="p-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b dark:border-gray-700">
+                                    <th class="pb-3 pr-4 font-semibold">Indicateur</th>
+                                    <th class="pb-3 px-4 font-semibold" id="month1">Janvier</th>
+                                    <th class="pb-3 px-4 font-semibold" id="month2">Février</th>
+                                    <th class="pb-3 pl-4 font-semibold" id="month3">Mars</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b dark:border-gray-700">
+                                    <td class="py-3 pr-4 font-medium">Dépôt</td>
+                                    <td class="py-3 px-4" id="deposit-month1">300</td>
+                                    <td class="py-3 px-4" id="deposit-month2">300</td>
+                                    <td class="py-3 pl-4" id="deposit-month3">300</td>
+                                </tr>
+                                <tr class="border-b dark:border-gray-700">
+                                    <td class="py-3 pr-4 font-medium">Marge Brute</td>
+                                    <td class="py-3 px-4" id="gross-month1">0</td>
+                                    <td class="py-3 px-4" id="gross-month2">0</td>
+                                    <td class="py-3 pl-4" id="gross-month3">900</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-medium">Marge Nette</td>
+                                    <td class="py-3 px-4" id="net-month1">0</td>
+                                    <td class="py-3 px-4" id="net-month2">0</td>
+                                    <td class="py-3 pl-4" id="net-month3">600</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calculation Details -->
+        <div class="mb-8">
+            <div class="bg-white dark:bg-dark-card rounded-lg shadow overflow-hidden">
+                <div class="p-4 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
+                    <h2 class="text-xl font-semibold">Calculs du Trimestre</h2>
+                </div>
+                <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h3 class="font-semibold text-lg mb-2">Marge Brute</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                                <span class="font-medium">Levier:</span> 
+                                <span id="leverage">1:3</span>
+                            </div>
+                            <div class="p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                                <span class="font-medium">Nouvelle Marge Brute:</span> 
+                                <span id="new-gross">Dépôt * Levier = 300 * 3 = 900</span>
+                            </div>
+                            <div class="p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                                <span class="font-medium">Marge Brute Obtenue:</span> 
+                                <span id="obtained-gross">MB Précédente + MB Nouvelle = 0 + 900 = 900</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg mb-2">Marge Nette</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                                <span class="font-medium">Nouvelle Marge Nette:</span> 
+                                <span id="new-net">MB Nouvelle - Dépôt = 900 - 300 = 600</span>
+                            </div>
+                            <div class="p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                                <span class="font-medium">Marge Nette Obtenue:</span> 
+                                <span id="obtained-net">MN Précédente + MN Nouvelle = 0 + 600 = 600</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center text-gray-500 dark:text-gray-400 text-sm mt-8">
+            <p>© 2023 KONGO INVEST. Tous droits réservés.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Portfolio data by quarter
+        const portfolioData = {
+            1: { // Q1 - Jan, Feb, Mar
+                name: "T1 (Jan-Mar)",
+                months: ["Janvier", "Février", "Mars"],
+                deposits: [300, 300, 300],
+                grossMargin: [0, 0, 900],
+                netMargin: [0, 0, 600],
+                leverage: "1:3",
+                calculations: {
+                    newGross: "Dépôt * Levier = 300 * 3 = 900",
+                    obtainedGross: "MB Précédente + MB Nouvelle = 0 + 900 = 900",
+                    newNet: "MB Nouvelle - Dépôt = 900 - 300 = 600",
+                    obtainedNet: "MN Précédente + MN Nouvelle = 0 + 600 = 600"
+                }
+            },
+            2: { // Q2 - Apr, May, Jun
+                name: "T2 (Avr-Jun)",
+                months: ["Avril", "Mai", "Juin"],
+                deposits: [420, 420, 420],
+                grossMargin: [900, 900, 2580],
+                netMargin: [600, 600, 1860],
+                leverage: "1:4",
+                calculations: {
+                    newGross: "Dépôt * Levier = 420 * 4 = 1680",
+                    obtainedGross: "MB Précédente + MB Nouvelle = 900 + 1680 = 2580",
+                    newNet: "MB Nouvelle - Dépôt = 1680 - 420 = 1260",
+                    obtainedNet: "MN Précédente + MN Nouvelle = 600 + 1260 = 1860"
+                }
+            },
+            3: { // Q3 - Jul, Aug, Sep
+                name: "T3 (Jul-Sep)",
+                months: ["Juillet", "Août", "Septembre"],
+                deposits: [0, 500, 500],
+                grossMargin: [2580, 2580, 0],
+                netMargin: [1860, 1860, 0],
+                leverage: "1:4",
+                calculations: {
+                    newGross: "Dépôt * Levier = 500 * 4 = 2000",
+                    obtainedGross: "MB Précédente + MB Nouvelle = 2580 + 2000 = 4580",
+                    newNet: "MB Nouvelle - Dépôt = 2000 - 500 = 1500",
+                    obtainedNet: "MN Précédente + MN Nouvelle = 1860 + 1500 = 3360"
+                }
+            },
+            4: { // Q4 - Oct, Nov, Dec
+                name: "T4 (Oct-Dec)",
+                months: ["Octobre", "Novembre", "Décembre"],
+                deposits: [0, 0, 0],
+                grossMargin: [0, 0, 0],
+                netMargin: [0, 0, 0],
+                leverage: "1:4",
+                calculations: {
+                    newGross: "Dépôt * Levier = 0 * 4 = 0",
+                    obtainedGross: "MB Précédente + MB Nouvelle = 0 + 0 = 0",
+                    newNet: "MB Nouvelle - Dépôt = 0 - 0 = 0",
+                    obtainedNet: "MN Précédente + MN Nouvelle = 0 + 0 = 0"
+                }
+            }
+        };
+
+        // Set current date
+        function setCurrentDate() {
+            const now = new Date();
+            const formatter = new Intl.DateTimeFormat('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            document.getElementById('current-date').textContent = formatter.format(now);
+            
+            // Determine current quarter
+            const currentMonth = now.getMonth();
+            const currentQuarter = Math.floor(currentMonth / 3) + 1;
+            document.getElementById('current-quarter').textContent = `T${currentQuarter}`;
+            
+            // Set active quarter
+            setActiveQuarter(currentQuarter);
+        }
+
+        // Update quarter data
+        function updateQuarterData(quarter) {
+            const data = portfolioData[quarter];
+            
+            // Update quarter title
+            document.getElementById('quarter-details-title').textContent = `Détails du ${data.name}`;
+            
+            // Update month names
+            document.getElementById('month1').textContent = data.months[0];
+            document.getElementById('month2').textContent = data.months[1];
+            document.getElementById('month3').textContent = data.months[2];
+            
+            // Update deposit values
+            document.getElementById('deposit-month1').textContent = data.deposits[0];
+            document.getElementById('deposit-month2').textContent = data.deposits[1];
+            document.getElementById('deposit-month3').textContent = data.deposits[2];
+            
+            // Update gross margin values
+            document.getElementById('gross-month1').textContent = data.grossMargin[0];
+            document.getElementById('gross-month2').textContent = data.grossMargin[1];
+            document.getElementById('gross-month3').textContent = data.grossMargin[2];
+            
+            // Update net margin values
+            document.getElementById('net-month1').textContent = data.netMargin[0];
+            document.getElementById('net-month2').textContent = data.netMargin[1];
+            document.getElementById('net-month3').textContent = data.netMargin[2];
+            
+            // Update calculation details
+            document.getElementById('leverage').textContent = data.leverage;
+            document.getElementById('new-gross').textContent = data.calculations.newGross;
+            document.getElementById('obtained-gross').textContent = data.calculations.obtainedGross;
+            document.getElementById('new-net').textContent = data.calculations.newNet;
+            document.getElementById('obtained-net').textContent = data.calculations.obtainedNet;
+            
+            // Update summary cards
+            const lastDepositIndex = data.deposits.length - 1;
+            const lastGrossIndex = data.grossMargin.length - 1;
+            const lastNetIndex = data.netMargin.length - 1;
+            
+            document.getElementById('current-deposit').textContent = data.deposits[lastDepositIndex];
+            document.getElementById('current-gross-margin').textContent = data.grossMargin[lastGrossIndex];
+            document.getElementById('current-net-margin').textContent = data.netMargin[lastNetIndex];
+        }
+
+        // Set active quarter
+        function setActiveQuarter(quarter) {
+            // Update active button state
+            const buttons = document.querySelectorAll('.quarter-btn');
+            buttons.forEach(btn => {
+                if (parseInt(btn.dataset.quarter) === quarter) {
+                    btn.classList.add('bg-primary', 'text-white');
+                    btn.classList.remove('hover:bg-gray-100', 'dark:hover:bg-gray-700');
+                } else {
+                    btn.classList.remove('bg-primary', 'text-white');
+                    btn.classList.add('hover:bg-gray-100', 'dark:hover:bg-gray-700');
+                }
+            });
+            
+            // Update data for the selected quarter
+            updateQuarterData(quarter);
+        }
+
+        // Initialize data and event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            setCurrentDate();
+            
+            // Add click event listeners to quarter buttons
+            const quarterButtons = document.querySelectorAll('.quarter-btn');
+            quarterButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const quarter = parseInt(this.dataset.quarter);
+                    setActiveQuarter(quarter);
+                });
+            });
+        });
+    </script>
+
+
+</body></html>
