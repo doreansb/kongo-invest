@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KONGO INVEST</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        secondary: '#F3F4F6',
+                        dark: {
+                            primary: '#5D5CDE',
+                            secondary: '#2D2D3A',
+                            bg: '#181818',
+                            card: '#252525'
+                        }
+                    }
+                }
+            }
+        }
+
+        // Detect dark mode
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Simulation data
+        const accountTypes = [
+            { id: 1, name: "Compte Marge - Soins Médicaux", icon: "fa-kit-medical" },
+            { id: 2, name: "Compte Marge - Projets", icon: "fa-lightbulb" },
+            { id: 3, name: "Compte Marge - Études", icon: "fa-graduation-cap" },
+            { id: 4, name: "Compte Épargne", icon: "fa-piggy-bank" }
+        ];
+
+        const accounts = [
+            { id: 1, name: "Soins Médicaux Famille", type: "Compte Marge - Soins Médicaux", typeId: 1, status: "Actif", balance: 1500000 },
+            { id: 2, name: "Rénovation Maison", type: "Compte Marge - Projets", typeId: 2, status: "Actif", balance: 3500000 },
+            { id: 3, name: "Université des Enfants", type: "Compte Marge - Études", typeId: 3, status: "Actif", balance: 2700000 },
+            { id: 4, name: "Épargne Retraite", type: "Compte Épargne", typeId: 4, status: "Actif", balance: 7500000 }
+        ];
+
+        const transactions = [
+            { id: 1, accountId: 1, type: "Dépôt", amount: 500000, date: "2023-12-01", mode: "Virement bancaire", reference: "DEP001" },
+            { id: 2, accountId: 1, type: "Dépôt", amount: 1000000, date: "2023-12-15", mode: "Espèces", reference: "DEP002" },
+            { id: 3, accountId: 2, type: "Dépôt", amount: 2000000, date: "2023-12-05", mode: "Virement bancaire", reference: "DEP003" },
+            { id: 4, accountId: 2, type: "Dépôt", amount: 1500000, date: "2023-12-20", mode: "Chèque", reference: "DEP004" },
+            { id: 5, accountId: 3, type: "Dépôt", amount: 1500000, date: "2023-12-10", mode: "Virement bancaire", reference: "DEP005" },
+            { id: 6, accountId: 3, type: "Dépôt", amount: 1200000, date: "2023-12-25", mode: "Mobile Money", reference: "DEP006" },
+            { id: 7, accountId: 4, type: "Dépôt", amount: 3500000, date: "2023-12-01", mode: "Virement bancaire", reference: "DEP007" },
+            { id: 8, accountId: 4, type: "Dépôt", amount: 4000000, date: "2023-12-15", mode: "Virement bancaire", reference: "DEP008" }
+        ];
+
+        const userProfile = {
+            id: 1,
+            nom: "Lufungula",
+            prenom: "Jean",
+            email: "jean.lufungula@example.com",
+            telephone: "+243 812 345 678",
+            adresse: "123 Avenue Lumumba, Kinshasa",
+            dateInscription: "2023-09-01"
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize app
+            navigateTo('dashboard');
+
+            // Add event listeners for navigation
+            document.querySelectorAll('[data-nav]').forEach(navItem => {
+                navItem.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = this.getAttribute('data-nav');
+                    navigateTo(target);
+                });
+            });
+
+            // Handle switching between tabs in transaction section
+            document.querySelectorAll('[data-tab]').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const targetTab = this.getAttribute('data-tab');
+                    document.querySelectorAll('[data-tab]').forEach(t => {
+                        t.classList.remove('bg-primary', 'text-white');
+                        t.classList.add('bg-gray-200', 'dark:bg-dark-card', 'text-gray-700', 'dark:text-gray-300');
+                    });
+                    this.classList.remove('bg-gray-200', 'dark:bg-dark-card', 'text-gray-700', 'dark:text-gray-300');
+                    this.classList.add('bg-primary', 'text-white');
+
+                    document.querySelectorAll('[data-tab-content]').forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    document.querySelector(`[data-tab-content="${targetTab}"]`).classList.remove('hidden');
+                });
+            });
+
+            // Account creation form handling
+            const accountForm = document.getElementById('account-creation-form');
+            if (accountForm) {
+                accountForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const accountName = document.getElementById('account-name').value;
+                    const accountType = document.querySelector('input[name="account-type"]:checked').value;
+                    const currency = document.getElementById('account-currency').value;
+                    
+                    alert(`Compte "${accountName}" de type "${accountType}" créé avec succès en ${currency}! Redirection vers dépôt initial...`);
+                    navigateTo('deposit-withdraw');
+                    // Pre-fill the deposit form with the new account
+                    const selectedTypeId = document.querySelector('input[name="account-type"]:checked').getAttribute('data-type-id');
+                    document.getElementById('transaction-account').value = selectedTypeId;
+                    document.getElementById('operation-type-deposit').checked = true;
+                });
+            }
+
+            // Transaction form handling
+            const transactionForm = document.getElementById('transaction-form');
+            if (transactionForm) {
+                transactionForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const accountId = document.getElementById('transaction-account').value;
+                    const operationType = document.querySelector('input[name="operation-type"]:checked').value;
+                    const amount = document.getElementById('transaction-amount').value;
+                    const mode = document.getElementById('transaction-mode').value;
+                    const reference = document.getElementById('transaction-reference').value;
+                    
+                    const selectedAccount = accounts.find(acc => acc.id == accountId);
+                    
+                    // Show success message
+                    const messageContainer = document.getElementById('transaction-message');
+                    messageContainer.innerHTML = `<div class="p-4 mb-4 text-sm text-green-700 bg-green-100 rounded-lg dark:bg-green-200 dark:text-green-800">
+                        ${operationType} de ${formatCurrency(amount)} CDF effectué avec succès sur le compte "${selectedAccount.name}"!
+                    </div>`;
+                    
+                    // Reset form
+                    document.getElementById('transaction-amount').value = '';
+                    document.getElementById('transaction-reference').value = '';
+                });
+            }
+
+            // Populate account list
+            populateAccountList();
+        });
+
+        function navigateTo(screen) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(s => {
+                s.classList.add('hidden');
+            });
+            
+            // Show target screen
+            document.getElementById(screen + '-screen').classList.remove('hidden');
+            
+            // Update active nav item
+            document.querySelectorAll('[data-nav]').forEach(navItem => {
+                if (navItem.getAttribute('data-nav') === screen) {
+                    navItem.classList.add('text-primary', 'border-primary');
+                    navItem.classList.remove('text-gray-600', 'border-transparent', 'dark:text-gray-300');
+                } else {
+                    navItem.classList.remove('text-primary', 'border-primary');
+                    navItem.classList.add('text-gray-600', 'border-transparent', 'dark:text-gray-300');
+                }
+            });
+
+            // Special initialization for screens
+            if (screen === 'create-account') {
+                populateAccountTypes();
+            }
+            if (screen === 'deposit-withdraw') {
+                populateAccountDropdown();
+            }
+            if (screen === 'dashboard') {
+                updateDashboard();
+            }
+        }
+
+        function updateDashboard() {
+            // Update total balance
+            const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
+            document.getElementById('total-balance').textContent = formatCurrency(totalBalance);
+            
+            // Update account cards
+            const accountCardsContainer = document.getElementById('account-cards');
+            accountCardsContainer.innerHTML = '';
+            
+            accounts.forEach(account => {
+                const accountType = accountTypes.find(type => type.id === account.typeId);
+                const card = document.createElement('div');
+                card.className = 'bg-white dark:bg-dark-card rounded-lg shadow-md p-4 mb-4 transition-transform transform hover:scale-105';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center">
+                            <div class="p-2 rounded-full bg-primary/20 text-primary mr-3">
+                                <i class="fas ${accountType.icon}"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-800 dark:text-white">${account.name}</h3>
+                        </div>
+                        <span class="px-2 py-1 text-xs rounded-full ${account.status === 'Actif' ? 'bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-100' : 'bg-red-100 text-red-800 dark:bg-red-700 dark:text-red-100'}">${account.status}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">${account.type}</p>
+                        <p class="font-bold text-gray-800 dark:text-white">${formatCurrency(account.balance)}</p>
+                    </div>
+                    <div class="mt-3 flex space-x-2">
+                        <button class="flex-1 text-xs py-1 px-2 bg-primary text-white rounded hover:bg-primary/90 transition"
+                                onclick="navigateToDeposit(${account.id})">
+                            <i class="fas fa-plus mr-1"></i> Déposer
+                        </button>
+                        <button class="flex-1 text-xs py-1 px-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                                onclick="navigateToWithdraw(${account.id})">
+                            <i class="fas fa-minus mr-1"></i> Retirer
+                        </button>
+                    </div>
+                `;
+                accountCardsContainer.appendChild(card);
+            });
+
+            // Recent transactions
+            const recentTransactionsContainer = document.getElementById('recent-transactions');
+            recentTransactionsContainer.innerHTML = '';
+            
+            const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+            
+            sortedTransactions.forEach(transaction => {
+                const account = accounts.find(acc => acc.id === transaction.accountId);
+                const transactionRow = document.createElement('div');
+                transactionRow.className = 'flex items-center justify-between p-3 border-b dark:border-gray-700';
+                transactionRow.innerHTML = `
+                    <div>
+                        <p class="font-medium text-gray-800 dark:text-white">${account.name}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">${formatDate(transaction.date)} • ${transaction.reference}</p>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="${transaction.type === 'Dépôt' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'} font-medium">
+                            ${transaction.type === 'Dépôt' ? '+' : '-'}${formatCurrency(transaction.amount)}
+                        </span>
+                    </div>
+                `;
+                recentTransactionsContainer.appendChild(transactionRow);
+            });
+        }
+
+        function populateAccountTypes() {
+            const typesContainer = document.getElementById('account-types');
+            typesContainer.innerHTML = '';
+            
+            accountTypes.forEach((type, index) => {
+                const typeOption = document.createElement('div');
+                typeOption.className = 'relative flex items-center mb-4';
+                typeOption.innerHTML = `
+                    <input id="account-type-${type.id}" type="radio" name="account-type" value="${type.name}" 
+                           data-type-id="${type.id}" class="hidden" ${index === 0 ? 'checked' : ''}>
+                    <label for="account-type-${type.id}" class="flex items-center cursor-pointer p-4 border border-gray-200 dark:border-gray-700 rounded-lg w-full transition-all hover:border-primary dark:hover:border-primary">
+                        <div class="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 rounded-full flex-shrink-0 mr-4 flex items-center justify-center radio-button transition-all">
+                            <div class="radio-dot bg-primary w-3 h-3 rounded-full opacity-0 transition-all"></div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="p-2 rounded-full bg-primary/20 text-primary mr-3">
+                                <i class="fas ${type.icon}"></i>
+                            </div>
+                            <span class="font-medium text-gray-800 dark:text-white">${type.name}</span>
+                        </div>
+                    </label>
+                `;
+                typesContainer.appendChild(typeOption);
+            });
+
+            // Add radio button functionality
+            document.querySelectorAll('input[name="account-type"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    document.querySelectorAll('.radio-button').forEach(btn => {
+                        btn.querySelector('.radio-dot').style.opacity = '0';
+                        btn.parentElement.classList.remove('border-primary', 'dark:border-primary');
+                        btn.parentElement.classList.add('border-gray-200', 'dark:border-gray-700');
+                    });
+                    
+                    if (this.checked) {
+                        const radioButton = document.querySelector(`label[for="account-type-${this.getAttribute('data-type-id')}"] .radio-button`);
+                        radioButton.querySelector('.radio-dot').style.opacity = '1';
+                        radioButton.parentElement.classList.add('border-primary', 'dark:border-primary');
+                        radioButton.parentElement.classList.remove('border-gray-200', 'dark:border-gray-700');
+                    }
+                });
+            });
+
+            // Trigger change event on the first option to set the initial state
+            document.querySelector('input[name="account-type"]').dispatchEvent(new Event('change'));
+        }
+
+        function populateAccountDropdown() {
+            const accountSelect = document.getElementById('transaction-account');
+            accountSelect.innerHTML = '';
+            
+            accounts.forEach(account => {
+                const option = document.createElement('option');
+                option.value = account.id;
+                option.textContent = account.name;
+                accountSelect.appendChild(option);
+            });
+        }
+
+        function populateAccountList() {
+            const accountListContainer = document.getElementById('accounts-list');
+            if (!accountListContainer) return;
+            
+            accountListContainer.innerHTML = '';
+            
+            accounts.forEach(account => {
+                const accountType = accountTypes.find(type => type.id === account.typeId);
+                const row = document.createElement('div');
+                row.className = 'mb-4 bg-white dark:bg-dark-card rounded-lg shadow p-4';
+                row.innerHTML = `
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                        <div class="flex items-center mb-2 sm:mb-0">
+                            <div class="p-2 rounded-full bg-primary/20 text-primary mr-3">
+                                <i class="fas ${accountType.icon}"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800 dark:text-white">${account.name}</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">${account.type}</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end w-full sm:w-auto">
+                            <span class="text-lg font-bold text-gray-800 dark:text-white mb-2">${formatCurrency(account.balance)}</span>
+                            <div class="flex space-x-2 w-full sm:w-auto">
+                                <button class="flex-1 sm:flex-initial text-xs py-1 px-3 bg-primary text-white rounded hover:bg-primary/90 transition"
+                                        onclick="navigateToDeposit(${account.id})">
+                                    <i class="fas fa-plus mr-1"></i> Déposer
+                                </button>
+                                <button class="flex-1 sm:flex-initial text-xs py-1 px-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                                        onclick="navigateToWithdraw(${account.id})">
+                                    <i class="fas fa-minus mr-1"></i> Retirer
+                                </button>
+                                <button class="flex-1 sm:flex-initial text-xs py-1 px-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                                    <i class="fas fa-history mr-1"></i> Détails
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <span class="px-2 py-1 text-xs rounded-full ${account.status === 'Actif' ? 'bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-100' : 'bg-red-100 text-red-800 dark:bg-red-700 dark:text-red-100'}">${account.status}</span>
+                    </div>
+                `;
+                accountListContainer.appendChild(row);
+            });
+        }
+
+        function navigateToDeposit(accountId) {
+            navigateTo('deposit-withdraw');
+            document.getElementById('transaction-account').value = accountId;
+            document.getElementById('operation-type-deposit').checked = true;
+            // Scroll to form
+            document.getElementById('transaction-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function navigateToWithdraw(accountId) {
+            navigateTo('deposit-withdraw');
+            document.getElementById('transaction-account').value = accountId;
+            document.getElementById('operation-type-withdraw').checked = true;
+            // Scroll to form
+            document.getElementById('transaction-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('fr-CD', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('fr-FR', options);
+        }
+    </script>
+    <style>
+        /* Custom styles for radiobuttons */
+        input[name="account-type"]:checked + label {
+            border-color: #5D5CDE;
+        }
+        input[name="account-type"]:checked + label .radio-dot {
+            opacity: 1 !important;
+        }
+        
+        /* Custom styles for operation type radio buttons */
+        input[name="operation-type"]:checked + label {
+            border-color: #5D5CDE;
+            background-color: rgba(93, 92, 222, 0.1);
+        }
+        
+        /* Smooth transitions */
+        .screen {
+            transition: all 0.3s ease;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #2D2D3A;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-dark-bg min-h-screen font-sans">
+    <!-- Navigation -->
+    <nav class="bg-white dark:bg-dark-card shadow-md sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <span class="text-primary font-bold text-xl">KONGO INVEST</span>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="flex items-center">
+                        <button class="p-2 rounded-full bg-gray-200 dark:bg-dark-secondary text-gray-700 dark:text-white mr-3">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        <div class="ml-3 relative">
+                            <div class="flex items-center">
+                                <div class="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white">
+                                    JL
+                                </div>
+                                <span class="ml-2 text-gray-800 dark:text-white hidden sm:block">Jean L.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Bottom Navigation for Mobile -->
+    <div class="sm:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-dark-card shadow-top z-10">
+        <div class="flex justify-around">
+            <a href="#" data-nav="dashboard" class="flex flex-col items-center p-3 text-primary border-t-2 border-primary">
+                <i class="fas fa-chart-pie"></i>
+                <span class="text-xs mt-1">Tableau</span>
+            </a>
+            <a href="#" data-nav="view-accounts" class="flex flex-col items-center p-3 text-gray-600 dark:text-gray-300 border-t-2 border-transparent">
+                <i class="fas fa-wallet"></i>
+                <span class="text-xs mt-1">Comptes</span>
+            </a>
+            <a href="#" data-nav="deposit-withdraw" class="flex flex-col items-center p-3 text-gray-600 dark:text-gray-300 border-t-2 border-transparent">
+                <i class="fas fa-exchange-alt"></i>
+                <span class="text-xs mt-1">Transactions</span>
+            </a>
+            <a href="#" data-nav="create-account" class="flex flex-col items-center p-3 text-gray-600 dark:text-gray-300 border-t-2 border-transparent">
+                <i class="fas fa-plus-circle"></i>
+                <span class="text-xs mt-1">Créer</span>
+            </a>
+            <a href="portfeuille 2.html" data-nav="" class="flex flex-col items-center p-3 text-gray-600 dark:text-gray-300 border-t-2 border-transparent">
+                <i class="fas fa-plus-circle"></i>
+                <span class="text-xs mt-1">Portefeuille</span>
+            </a>
+            <a href="#" data-nav="profile" class="flex flex-col items-center p-3 text-gray-600 dark:text-gray-300 border-t-2 border-transparent">
+                <i class="fas fa-user"></i>
+                <span class="text-xs mt-1">Profil</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-8 mb-16 sm:mb-0">
+        <!-- Sidebar for desktop -->
+        <div class="hidden sm:flex pt-8">
+            <div class="w-64 pr-8">
+                <div class="bg-white dark:bg-dark-card rounded-lg shadow-md p-4 mb-4">
+                    <div class="flex items-center mb-6">
+                        <div class="h-12 w-12 rounded-full bg-primary flex items-center justify-center text-white text-xl mr-3">
+                            JL
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-800 dark:text-white">Jean Lufungula</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Client Premium</p>
+                        </div>
+                    </div>
+                    <nav class="space-y-1">
+                        <a href="#" data-nav="dashboard" class="flex items-center px-3 py-2 text-primary font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 border-l-4 border-primary">
+                            <i class="fas fa-chart-pie w-5 h-5 mr-3"></i>
+                            <span>Tableau de bord</span>
+                        </a>
+                        <a href="#" data-nav="view-accounts" class="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 border-l-4 border-transparent">
+                            <i class="fas fa-wallet w-5 h-5 mr-3"></i>
+                            <span>Mes Comptes</span>
+                        </a>
+                        <a href="#" data-nav="deposit-withdraw" class="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 border-l-4 border-transparent">
+                            <i class="fas fa-exchange-alt w-5 h-5 mr-3"></i>
+                            <span>Dépôt & Retrait</span>
+                        </a>
+                        <a href="#" data-nav="create-account" class="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 border-l-4 border-transparent">
+                            <i class="fas fa-plus-circle w-5 h-5 mr-3"></i>
+                            <span>Créer un Compte</span>
+                        </a>
+                        <a href="portfeuille 2.html"  class="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 border-l-4 border-transparent">
+                            <i class="fas fa-plus-circle w-5 h-5 mr-3"></i>
+                            <span>Portefeuille</span>
+                        </a>
+                        <a href="#" data-nav="profile" class="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 border-l-4 border-transparent">
+                            <i class="fas fa-user w-5 h-5 mr-3"></i>
+                            <span>Mon Profil</span>
+                        </a>
+                    </nav>
+                </div>
+                <div class="bg-white dark:bg-dark-card rounded-lg shadow-md p-4">
+                    <h3 class="font-medium text-gray-800 dark:text-white mb-3">Support client</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Besoin d'aide ? Notre équipe est disponible 24/7 pour vous assister.</p>
+                    <button class="w-full py-2 px-4 bg-primary text-white rounded-md hover:bg-primary/90 transition flex items-center justify-center">
+                        <i class="fas fa-headset mr-2"></i>
+                        Contacter le support
+                    </button>
+                </div>
+            </div>
+            <div class="flex-1 pt-8">
+                <!-- Main content will go here -->
+                
+                <!-- 1. Dashboard Screen -->
+                <div id="dashboard-screen" class="screen">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Tableau de bord</h2>
+                    
+                    <div class="bg-white dark:bg-dark-card rounded-lg shadow-md p-6 mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Solde Total</h3>
+                        <div class="flex items-end">
+                            <span id="total-balance" class="text-3xl font-bold text-gray-900 dark:text-white">15,200,000</span>
+                            <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">CDF</span>
+                        </div>
+                        <div class="mt-4">
+                            <a href="#" data-nav="deposit-withdraw" class="inline-block py-2 px-4 bg-primary text-white rounded-md hover:bg-primary/90 transition">
+                                <i class="fas fa-plus mr-1"></i> Faire un dépôt
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Mes Comptes</h3>
+                            <a href="#" data-nav="view-accounts" class="text-primary text-sm hover:underline">Voir tous</a>
+                        </div>
+                        <div id="account-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Account cards will be dynamically inserted here -->
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-dark-card rounded-lg shadow-md p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Transactions Récentes</h3>
+                            <a href="#" data-nav="deposit-withdraw" class="text-primary text-sm hover:underline">Voir toutes</a>
+                        </div>
+                        <div id="recent-transactions" class="divide-y dark:divide-gray-700">
+                            <!-- Recent transactions will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 2. Profile Screen -->
+                <div id="profile-screen" class="screen hidden">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Mon Profil</h2>
+                    
+                    <div class="bg-white dark:bg-dark-card rounded-lg shadow-md overflow-hidden">
+                        <div class="bg-primary p-6">
+                            <div class="flex items-center">
+                                <div class="h-20 w-20 rounded-full bg-white flex items-center justify-center text-primary text-2xl">
+                                    JL
+                                </div>
+                                <div class="ml-4 text-white">
+                                    <h3 class="text-xl font-bold">Jean Lufungula</h3>
+                                    <p>Client depuis le 01/09/2023</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Informations Personnelles</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Nom</p>
+                                    <p class="text-gray-800 dark:text-white font-medium">Lufungula</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Prénom</p>
+                                    <p class="text-gray-800 dark:text-white font-medium">Jean</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Email</p>
+                                    <p class="text-gray-800 dark:text-white font-medium">jean.lufungula@example.com</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Téléphone</p>
+                                    <p class="text-gray-800 dark:text-white font-medium">+243 812 345 678</p>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Adresse</p>
+                                    <p class="text-gray-800 dark:text-white font-medium">123 Avenue Lumumba, Kinshasa</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 flex space-x-3">
+                                <button class="py-2 px-4 bg-primary text-white rounded-md hover:bg-primary/90 transition">
+                                    <i class="fas fa-edit mr-2"></i>Modifier mon profil
+                                </button>
+                                <button class="py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                                    <i class="fas fa-key mr-2"></i>Changer de mot de passe
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-gray-200 dark:border-gray-700 p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Préférences</h3>
+                            
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-800 dark:text-white font-medium">Notifications par email</p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">Recevoir des mises à jour par email</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" value="" class="sr-only peer" checked>
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                                    </label>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-800 dark:text-white font-medium">Notifications SMS</p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">Recevoir des alertes par SMS</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" value="" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 3. Deposit/Withdraw Screen -->
+                <div id="deposit-withdraw-screen" class="screen hidden">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Dépôt & Retrait</h2>
+                    
+                    <div class="bg-white dark:bg-dark-card rounded-lg shadow-md overflow-hidden mb-6">
+                        <div class="flex">
+                            <button data-tab="deposit-withdraw-form" class="flex-1 py-3 px-4 text-center bg-primary text-white">
+                                Nouvelle Transaction
+                            </button>
+                            <button data-tab="transaction-history" class="flex-1 py-3 px-4 text-center bg-gray-200 dark:bg-dark-card text-gray-700 dark:text-gray-300">
+                                Historique des Transactions
+                            </button>
+                        </div>
+                        
+                        <div data-tab-content="deposit-withdraw-form" class="p-6">
+                            <form id="transaction-form" class="space-y-6">
+                                <div>
+                                    <label for="transaction-account" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sélectionnez un compte</label>
+                                    <select id="transaction-account" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-secondary text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                        <!-- Options will be populated dynamically -->
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type d'opération</label>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="relative">
+                                            <input type="radio" id="operation-type-deposit" name="operation-type" value="Dépôt" class="sr-only" checked>
+                                            <label for="operation-type-deposit" class="block w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                                                <i class="fas fa-arrow-down text-green-600 dark:text-green-400 mr-2"></i>
+                                                Dépôt
+                                            </label>
+                                        </div>
+                                        <div class="relative">
+                                            <input type="radio" id="operation-type-withdraw" name="operation-type" value="Retrait" class="sr-only">
+                                            <label for="operation-type-withdraw" class="block w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                                                <i class="fas fa-arrow-up text-red-600 dark:text-red-400 mr-2"></i>
+                                                Retrait
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label for="transaction-amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Montant (CDF)</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 dark:text-gray-400">CDF</span>
+                                        </div>
+                                        <input type="number" id="transaction-amount" min="1000" step="1000" class="w-full p-3 pl-14 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-secondary text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-base" placeholder="0">
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label for="transaction-mode" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mode de Transaction</label>
+                                    <select id="transaction-mode" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-secondary text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                        <option value="Virement bancaire">Virement bancaire</option>
+                                        <option value="Espèces">Espèces</option>
+                                        <option value="Chèque">Chèque</option>
+                                        <option value="Mobile Money">Mobile Money</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label for="transaction-reference" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Référence (Optionnel)</label>
+                                    <input type="text" id="transaction-reference" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-secondary text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-base" placeholder="Ex: Salaire Décembre">
+                                </div>
+                                
+                                <div id="transaction-message">
+                                    <!-- Success/Error messages will appear here -->
+                                </div>
+                                
+                                <button type="submit" class="w-full py-3 px-4 bg-primary text-white font-medium rounded-md hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                                    Confirmer la Transaction
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div data-tab-content="transaction-history" class="p-6 hidden">
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                    <thead class="bg-gray-50 dark:bg-dark-secondary">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Compte</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Montant</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Mode</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Référence</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-gray-700">
+                                        <!-- Sample transaction rows -->
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">25/12/2023</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">Université des Enfants</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 dark:text-green-400">Dépôt</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">1,200,000 CDF</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Mobile Money</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">DEP006</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">20/12/2023</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">Rénovation Maison</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 dark:text-green-400">Dépôt</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">1,500,000 CDF</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Chèque</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">DEP004</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">15/12/2023</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">Épargne Retraite</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 dark:text-green-400">Dépôt</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">4,000,000 CDF</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Virement bancaire</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">DEP008</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">15/12/2023</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">Soins Médicaux Famille</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 dark:text-green-400">Dépôt</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">1,000,000 CDF</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Espèces</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">DEP002</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">10/12/2023</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">Université des Enfants</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 dark:text-green-400">Dépôt</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">1,500,000 CDF</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Virement bancaire</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">DEP005</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 4. Create Account Screen -->
+                <div id="create-account-screen" class="screen hidden">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Créer un Nouveau Compte</h2>
+                    
+                    <div class="bg-white dark:bg-dark-card rounded-lg shadow-md p-6">
+                        <p class="text-gray-600 dark:text-gray-400 mb-6">Sélectionnez le type de compte que vous souhaitez créer. Vous pourrez ensuite effectuer un dépôt initial pour activer votre compte.</p>
+                        
+                        <form id="account-creation-form" class="space-y-6">
+                            <div>
+                                <label for="account-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom du Compte (Optionnel)</label>
+                                <input type="text" id="account-name" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-secondary text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-base" placeholder="Ex: Épargne Vacances">
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Si laissé vide, un nom basé sur le type de compte sera utilisé.</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Type de Compte</label>
+                                <div id="account-types" class="space-y-4">
+                                    <!-- Account types will be dynamically inserted here -->
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="account-currency" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Devise</label>
+                                <select id="account-currency" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-secondary text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    <option value="CDF">Franc Congolais (CDF)</option>
+                                    <option value="USD">Dollar Américain (USD)</option>
+                                    <option value="EUR">Euro (EUR)</option>
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="w-full py-3 px-4 bg-primary text-white font-medium rounded-md hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                                <i class="fas fa-plus-circle mr-2"></i>Créer le Compte et Effectuer un Premier Dépôt
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- 5. View Accounts Screen -->
+                <div id="view-accounts-screen" class="screen hidden">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Mes Comptes</h2>
+                    
+                    <div class="bg-white dark:bg-dark-card rounded-lg shadow-md p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Synthèse</h3>
+                            <a href="#" data-nav="create-account" class="inline-flex items-center py-2 px-4 bg-primary text-white rounded-md hover:bg-primary/90 transition text-sm">
+                                <i class="fas fa-plus mr-2"></i>Nouveau Compte
+                            </a>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-gray-50 dark:bg-dark-secondary rounded-lg p-4">
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Nombre de Comptes</p>
+                                <p class="text-xl font-bold text-gray-800 dark:text-white">4</p>
+                            </div>
+                            <div class="bg-gray-50 dark:bg-dark-secondary rounded-lg p-4">
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Total Épargne</p>
+                                <p class="text-xl font-bold text-gray-800 dark:text-white">7,500,000 CDF</p>
+                            </div>
+                            <div class="bg-gray-50 dark:bg-dark-secondary rounded-lg p-4">
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Total Projets</p>
+                                <p class="text-xl font-bold text-gray-800 dark:text-white">6,200,000 CDF</p>
+                            </div>
+                            <div class="bg-gray-50 dark:bg-dark-secondary rounded-lg p-4">
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Total Soins & Études</p>
+                                <p class="text-xl font-bold text-gray-800 dark:text-white">1,500,000 CDF</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="accounts-list" class="space-y-4">
+                        <!-- Account list will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile view content (displayed when sidebar is hidden) -->
+        <div class="sm:hidden pt-4">
+            <!-- 1. Dashboard Screen (Mobile) -->
+            <div id="dashboard-screen" class="screen">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Tableau de bord</h2>
+                
+                <div class="bg-white dark:bg-dark-card rounded-lg shadow-md p-4 mb-4">
+                    <h3 class="text-base font-semibold text-gray-800 dark:text-white mb-2">Solde Total</h3>
+                    <div class="flex items-end">
+                        <span id="total-balance-mobile" class="text-2xl font-bold text-gray-900 dark:text-white">15,200,000</span>
+                        <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">CDF</span>
+                    </div>
+                    <div class="mt-3">
+                        <a href="#" data-nav="deposit-withdraw" class="inline-block py-2 px-3 bg-primary text-white text-sm rounded-md hover:bg-primary/90 transition">
+                            <i class="fas fa-plus mr-1"></i> Faire un dépôt
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-base font-semibold text-gray-800 dark:text-white">Mes Comptes</h3>
+                        <a href="#" data-nav="view-accounts" class="text-primary text-xs hover:underline">Voir tous</a>
+                    </div>
+                    <div id="account-cards-mobile" class="space-y-3">
+                        <!-- Account cards for mobile will be dynamically inserted here -->
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-dark-card rounded-lg shadow-md p-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-base font-semibold text-gray-800 dark:text-white">Transactions Récentes</h3>
+                        <a href="#" data-nav="deposit-withdraw" class="text-primary text-xs hover:underline">Voir toutes</a>
+                    </div>
+                    <div id="recent-transactions-mobile" class="divide-y dark:divide-gray-700">
+                        <!-- Recent transactions for mobile will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 2. Profile Screen (Mobile) -->
+            <div id="profile-screen" class="screen hidden">
+                <!-- Mobile profile content -->
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Mon Profil</h2>
+                
+                <div class="bg-white dark:bg-dark-card rounded-lg shadow-md overflow-hidden">
+                    <div class="bg-primary p-4">
+                        <div class="flex items-center">
+                            <div class="h-16 w-16 rounded-full bg-white flex items-center justify-center text-primary text-xl">
+                                JL
+                            </div>
+                            <div class="ml-3 text-white">
+                                <h3 class="text-lg font-bold">Jean Lufungula</h3>
+                                <p class="text-sm">Client depuis le 01/09/2023</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4">
+                        <h3 class="text-base font-semibold text-gray-800 dark:text-white mb-3">Informations Personnelles</h3>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Nom</p>
+                                <p class="text-gray-800 dark:text-white">Lufungula</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Prénom</p>
+                                <p class="text-gray-800 dark:text-white">Jean</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                                <p class="text-gray-800 dark:text-white">jean.lufungula@example.com</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Téléphone</p>
+                                <p class="text-gray-800 dark:text-white">+243 812 345 678</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Adresse</p>
+                                <p class="text-gray-800 dark:text-white">123 Avenue Lumumba, Kinshasa</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 flex space-x-2">
+                            <button class="flex-1 py-2 px-3 bg-primary text-white text-sm rounded-md hover:bg-primary/90 transition">
+                                <i class="fas fa-edit mr-1"></i>Modifier
+                            </button>
+                            <button class="flex-1 py-2 px-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white text-sm rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                                <i class="fas fa-key mr-1"></i>Mot de passe
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 3. Deposit/Withdraw Screen (Mobile) -->
+            <div id="deposit-withdraw-screen" class="screen hidden">
+                <!-- Mobile deposit/withdraw content -->
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Dépôt & Retrait</h2>
+                
+                <div class="bg-white dark:bg-dark-card rounded-lg shadow-md overflow-hidden mb-4">
+                    <div class="flex">
+                        <button data-tab="deposit-withdraw-form" class="flex-1 py-2 px-3 text-center bg-primary text-white text-sm">
+                            Nouvelle Transaction
+                        </button>
+                        <button data-tab="transaction-history" class="flex-1 py-2 px-3 text-center bg-gray-200 dark:bg-dark-card text-gray-700 dark:text-gray-300 text-sm">
+                            Historique
+                        </button>
+                    </div>
+                    
+                    <div data-tab-content="deposit-withdraw-form" class="p-4">
+                        <form id="transaction-form-mobile" class="space-y-4">
+                            <!-- Same form as desktop but with smaller padding and font sizes -->
+                            <div>
+                                <label for="transaction-account-mobile" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Sélectionnez un compte</label>
+                                <select id="transaction-account-mobile" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-secondary text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                                    <!-- Options will be populated dynamically -->
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Type d'opération</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="relative">
+                                        <input type="radio" id="operation-type-deposit-mobile" name="operation-type-mobile" value="Dépôt" class="sr-only" checked>
+                                        <label for="operation-type-deposit-mobile" class="block w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-center text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                                            <i class="fas fa-arrow-down text-green-600 dark:text-green-400 mr-1"></i>
+                                            Dépôt
+                                        </label>
+                                    </div>
+                                    <div class="relative">
+                                        <input type="radio" id="operation-type-withdraw-mobile" name="operation-type-mobile" value="Retrait" class="sr-only">
+                                        <label for="operation-type-withdraw-mobile" class="block w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-center text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                                            <i class="fas fa-arrow-up text-red-600 dark:text-red-400 mr-1"></i>
+                                            Retrait
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Continue with other fields -->
+                        </form>
+                    </div>
+                    
+                    <div data-tab-content="transaction-history" class="p-4 hidden">
+                        <!-- Mobile transaction history -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 4. Create Account Screen (Mobile) -->
+            <div id="create-account-screen" class="screen hidden">
+                <!-- Mobile create account content -->
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Créer un Compte</h2>
+                
+                <div class="bg-white dark:bg-dark-card rounded-lg shadow-md p-4">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Sélectionnez le type de compte que vous souhaitez créer.</p>
+                    
+                    <form id="account-creation-form-mobile" class="space-y-4">
+                        <!-- Same form as desktop but with smaller padding and font sizes -->
+                    </form>
+                </div>
+            </div>
+            
+            <!-- 5. View Accounts Screen (Mobile) -->
+            <div id="view-accounts-screen" class="screen hidden">
+                <!-- Mobile view accounts content -->
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Mes Comptes</h2>
+                
+                <div class="bg-white dark:bg-dark-card rounded-lg shadow-md p-4 mb-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-base font-semibold text-gray-800 dark:text-white">Synthèse</h3>
+                        <a href="#" data-nav="create-account" class="inline-flex items-center py-1 px-3 bg-primary text-white rounded-md hover:bg-primary/90 transition text-xs">
+                            <i class="fas fa-plus mr-1"></i>Nouveau
+                        </a>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-gray-50 dark:bg-dark-secondary rounded-lg p-3">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Nombre de Comptes</p>
+                            <p class="text-base font-bold text-gray-800 dark:text-white">4</p>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-dark-secondary rounded-lg p-3">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Total</p>
+                            <p class="text-base font-bold text-gray-800 dark:text-white">15,200,000 CDF</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="accounts-list-mobile" class="space-y-3">
+                    <!-- Account list for mobile will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
