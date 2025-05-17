@@ -1,0 +1,1088 @@
+<!DOCTYPE html><html lang="fr"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KONGO INVEST</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        secondary: '#4F46E5',
+                        accent: '#818CF8',
+                        success: '#22C55E',
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
+                        info: '#3B82F6',
+                        epargne: '#3B82F6',
+                        etude: '#F59E0B',
+                        medical: '#EF4444',
+                        projet: '#22C55E'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .active-tab {
+            color: #5D5CDE;
+            border-bottom: 2px solid #5D5CDE;
+        }
+        
+        .dark .active-tab {
+            color: #818CF8;
+            border-bottom: 2px solid #818CF8;
+        }
+        
+        /* Animation pour le drawer */
+        .drawer {
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .drawer.open {
+            transform: translateX(0);
+        }
+        
+        .drawer.closed {
+            transform: translateX(-100%);
+        }
+
+        /* Scrollbar custom */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        .dark ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background: #555;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+        
+        .form-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        input, select, textarea {
+            font-size: 16px !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
+    <!-- Détection du mode sombre -->
+    <script>
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+
+    <!-- Menu latéral / Drawer -->
+    <div id="drawer" class="drawer closed fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-800 shadow-lg z-50 overflow-y-auto">
+        <div class="p-4">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-xl font-bold text-primary dark:text-accent">KONGO INVEST</h1>
+                <button id="closeDrawer" class="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="mb-6">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="font-medium">Jean Kimbangu</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">ID: KI2305784</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <p class="text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 mb-2">ACTIONS</p>
+                <ul>
+                    <li>
+                        <button onclick="showForm('createAccountForm')" class="flex items-center w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-left">
+                            <i class="fas fa-plus-circle text-primary dark:text-accent w-6"></i>
+                            <span class="ml-2">Créer un compte</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showForm('depositForm')" class="flex items-center w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-left">
+                            <i class="fas fa-arrow-circle-down text-success w-6"></i>
+                            <span class="ml-2">Faire un dépôt</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showForm('withdrawalForm')" class="flex items-center w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-left">
+                            <i class="fas fa-arrow-circle-up text-danger w-6"></i>
+                            <span class="ml-2">Faire un retrait</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="changeView('transactions')" class="flex items-center w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-left">
+                            <i class="fas fa-list-alt text-info w-6"></i>
+                            <span class="ml-2">Relevé de transactions</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            
+            <div>
+                <p class="text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 mb-2">MES COMPTES</p>
+                <ul class="space-y-1" id="accountsList">
+                    <li>
+                        <button onclick="changeAccount('account1')" class="account-btn flex items-center w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-left" data-account="account1">
+                            <div class="w-2 h-10 rounded-sm bg-epargne mr-2"></div>
+                            <div>
+                                <p class="font-medium">Épargne Classique</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Solde: 1,250,000 CDF</p>
+                            </div>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="changeAccount('account2')" class="account-btn flex items-center w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-left" data-account="account2">
+                            <div class="w-2 h-10 rounded-sm bg-etude mr-2"></div>
+                            <div>
+                                <p class="font-medium">Marge Étude</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Solde: 850,000 CDF</p>
+                            </div>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="changeAccount('account3')" class="account-btn flex items-center w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-left" data-account="account3">
+                            <div class="w-2 h-10 rounded-sm bg-medical mr-2"></div>
+                            <div>
+                                <p class="font-medium">Soins Médicaux</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Solde: 500,000 CDF</p>
+                            </div>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="changeAccount('account4')" class="account-btn flex items-center w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-left" data-account="account4">
+                            <div class="w-2 h-10 rounded-sm bg-projet mr-2"></div>
+                            <div>
+                                <p class="font-medium">Projet Maison</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Solde: 2,500,000 CDF</p>
+                            </div>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="changeAccount('account5')" class="account-btn flex items-center w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-left" data-account="account5">
+                            <div class="w-2 h-10 rounded-sm bg-projet mr-2"></div>
+                            <div>
+                                <p class="font-medium">Projet Véhicule</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Solde: 1,800,000 CDF</p>
+                            </div>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overlay pour le drawer -->
+    <div id="drawerOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- Header de l'application -->
+    <header class="bg-white dark:bg-gray-800 shadow-sm p-4 fixed top-0 left-0 right-0 z-30">
+        <div class="flex justify-between items-center">
+            <button id="openDrawer" class="text-gray-600 dark:text-gray-300">
+                <i class="fas fa-bars text-lg"></i>
+            </button>
+            <h1 class="text-lg font-bold text-primary dark:text-accent">KONGO INVEST</h1>
+            <div class="flex space-x-3">
+                <button class="text-gray-600 dark:text-gray-300">
+                    <i class="fas fa-bell"></i>
+                </button>
+                <button class="text-gray-600 dark:text-gray-300">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Contenu principal -->
+    <main class="pt-20 pb-20 px-4">
+        <!-- Nom du compte actif -->
+        <div class="mb-4">
+            <h2 id="currentAccountName" class="text-xl font-bold">Épargne Classique</h2>
+            <p id="currentAccountType" class="text-sm text-gray-500 dark:text-gray-400">Type: Épargne</p>
+        </div>
+        
+        <!-- Onglets -->
+        <div class="flex overflow-x-auto mb-6 pb-1 space-x-4 border-b border-gray-200 dark:border-gray-700">
+            <button id="tab-portfolio" class="tab-btn whitespace-nowrap pb-2 px-1 active-tab" onclick="changeTab('portfolio')">Portefeuille</button>
+            <button id="tab-transactions" class="tab-btn whitespace-nowrap pb-2 px-1" onclick="changeTab('transactions')">Transactions &amp; Paiements</button>
+            <button id="tab-performance" class="tab-btn whitespace-nowrap pb-2 px-1" onclick="changeTab('performance')">Performance</button>
+            <button id="tab-reports" class="tab-btn whitespace-nowrap pb-2 px-1" onclick="changeTab('reports')">Rapports</button>
+        </div>
+        
+        <!-- Contenu de l'onglet Portefeuille -->
+        <div id="content-portfolio" class="tab-content block">
+            <!-- KPIs actuels -->
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Dépôt (Trim. Actuel)</p>
+                    <p class="text-lg font-bold">450,000 CDF</p>
+                    <p class="text-xs text-green-500"><i class="fas fa-arrow-up"></i> +12%</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Solde Actuel</p>
+                    <p class="text-lg font-bold">1,250,000 CDF</p>
+                    <p class="text-xs text-green-500"><i class="fas fa-arrow-up"></i> +8%</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Marge Brute</p>
+                    <p class="text-lg font-bold">56,250 CDF</p>
+                    <p class="text-xs text-green-500"><i class="fas fa-arrow-up"></i> +15%</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Marge Nette</p>
+                    <p class="text-lg font-bold">45,000 CDF</p>
+                    <p class="text-xs text-green-500"><i class="fas fa-arrow-up"></i> +10%</p>
+                </div>
+            </div>
+            
+            <!-- Statistiques par type de compte -->
+            <div class="mb-6 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                <h3 class="text-lg font-semibold mb-4">Statistiques des Comptes</h3>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead>
+                            <tr>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type de Compte</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nombre</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Dépôt Total</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Solde Total</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Marge Brute</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Marge Nette</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-2 h-4 rounded-sm bg-epargne mr-2"></div>
+                                        <span>Épargne</span>
+                                    </div>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap">1</td>
+                                <td class="px-3 py-2 whitespace-nowrap">800,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap">1,250,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap">62,500 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap">50,000 CDF</td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-2 h-4 rounded-sm bg-etude mr-2"></div>
+                                        <span>Études</span>
+                                    </div>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap">1</td>
+                                <td class="px-3 py-2 whitespace-nowrap">300,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap">850,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap">42,500 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap">34,000 CDF</td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-2 h-4 rounded-sm bg-medical mr-2"></div>
+                                        <span>Soins Médicaux</span>
+                                    </div>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap">1</td>
+                                <td class="px-3 py-2 whitespace-nowrap">500,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap">500,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap">25,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap">20,000 CDF</td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-2 h-4 rounded-sm bg-projet mr-2"></div>
+                                        <span>Projets</span>
+                                    </div>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap">2</td>
+                                <td class="px-3 py-2 whitespace-nowrap">1,200,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap">4,300,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap">215,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap">172,000 CDF</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-6">
+                    <canvas id="accountTypeChart" height="200"></canvas>
+                </div>
+            </div>
+            
+            <!-- Transactions récentes -->
+            <div class="mb-6 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Transactions Récentes</h3>
+                    <button class="text-sm text-primary dark:text-accent" onclick="changeTab('transactions')">Voir tout</button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead>
+                            <tr>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Montant</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Référence</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">25/07/2023</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Dépôt</span>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm text-green-500">+150,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">REF123456</td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">15/07/2023</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Intérêt</span>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm text-green-500">+13,500 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">INT789012</td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">10/07/2023</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Dépôt</span>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm text-green-500">+200,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">REF345678</td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">28/06/2023</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Retrait</span>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm text-red-500">-100,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">WIT901234</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contenu de l'onglet Transactions -->
+        <div id="content-transactions" class="tab-content hidden">
+            <div class="mb-6 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Toutes les Transactions</h3>
+                    <div class="flex space-x-2">
+                        <select class="text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 p-2">
+                            <option>Tous les types</option>
+                            <option>Dépôt</option>
+                            <option>Retrait</option>
+                            <option>Intérêt</option>
+                        </select>
+                        <button class="bg-gray-200 dark:bg-gray-700 p-2 rounded-lg">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead>
+                            <tr>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Montant</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Référence</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">25/07/2023</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Dépôt</span>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm text-green-500">+150,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">REF123456</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Complété</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">15/07/2023</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Intérêt</span>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm text-green-500">+13,500 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">INT789012</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Complété</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">10/07/2023</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Dépôt</span>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm text-green-500">+200,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">REF345678</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Complété</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">28/06/2023</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Retrait</span>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm text-red-500">-100,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">WIT901234</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Complété</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">15/06/2023</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Intérêt</span>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm text-green-500">+11,250 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">INT567890</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Complété</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">05/06/2023</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Dépôt</span>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm text-green-500">+100,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">REF234567</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Complété</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-4 flex justify-between items-center">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Affichage de 1-6 sur 42 transactions</p>
+                    <div class="flex space-x-2">
+                        <button class="bg-gray-200 dark:bg-gray-700 p-2 rounded-lg">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="bg-primary text-white p-2 rounded-lg">
+                            1
+                        </button>
+                        <button class="bg-gray-200 dark:bg-gray-700 p-2 rounded-lg">
+                            2
+                        </button>
+                        <button class="bg-gray-200 dark:bg-gray-700 p-2 rounded-lg">
+                            3
+                        </button>
+                        <button class="bg-gray-200 dark:bg-gray-700 p-2 rounded-lg">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contenu de l'onglet Performance -->
+        <div id="content-performance" class="tab-content hidden">
+            <div class="mb-6 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                <h3 class="text-lg font-semibold mb-4">Performance Trimestrielle</h3>
+                
+                <div class="mb-4">
+                    <select class="w-full text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 p-2">
+                        <option>Année 2023</option>
+                        <option>Année 2022</option>
+                        <option>Année 2021</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <canvas id="performanceChart" height="250"></canvas>
+                </div>
+                
+                <div class="mt-6 overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead>
+                            <tr>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Trimestre</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Dépôts</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Marge Brute</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Marge Nette</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rendement</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">T3 2023</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">450,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">56,250 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">45,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm text-green-500">+10%</td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">T2 2023</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">350,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">43,750 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">35,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm text-green-500">+10%</td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">T1 2023</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">300,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">37,500 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">30,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm text-green-500">+10%</td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">T4 2022</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">250,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">31,250 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm">25,000 CDF</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm text-green-500">+10%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contenu de l'onglet Rapports -->
+        <div id="content-reports" class="tab-content hidden">
+            <div class="mb-6 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                <h3 class="text-lg font-semibold mb-4">Rapports Disponibles</h3>
+                
+                <div class="grid grid-cols-1 gap-4">
+                    <button class="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <div class="flex items-center">
+                            <i class="fas fa-file-pdf text-red-500 text-xl mr-3"></i>
+                            <div>
+                                <p class="font-medium">Rapport Trimestriel T2 2023</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">1 Juillet 2023</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-download text-gray-500"></i>
+                    </button>
+                    
+                    <button class="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <div class="flex items-center">
+                            <i class="fas fa-file-pdf text-red-500 text-xl mr-3"></i>
+                            <div>
+                                <p class="font-medium">Rapport Trimestriel T1 2023</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">1 Avril 2023</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-download text-gray-500"></i>
+                    </button>
+                    
+                    <button class="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <div class="flex items-center">
+                            <i class="fas fa-file-pdf text-red-500 text-xl mr-3"></i>
+                            <div>
+                                <p class="font-medium">Rapport Annuel 2022</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">15 Janvier 2023</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-download text-gray-500"></i>
+                    </button>
+                    
+                    <button class="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <div class="flex items-center">
+                            <i class="fas fa-file-pdf text-red-500 text-xl mr-3"></i>
+                            <div>
+                                <p class="font-medium">Rapport Trimestriel T4 2022</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">1 Janvier 2023</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-download text-gray-500"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Navigation de bas de page -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-3 flex justify-around z-30">
+        <button onclick="changeTab('portfolio')" class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-accent">
+            <i class="fas fa-chart-pie text-lg"></i>
+            <span class="text-xs mt-1">Portefeuille</span>
+        </button>
+        <button onclick="changeTab('transactions')" class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-accent">
+            <i class="fas fa-exchange-alt text-lg"></i>
+            <span class="text-xs mt-1">Transactions</span>
+        </button>
+        <button onclick="showForm('depositForm')" class="flex flex-col items-center justify-center bg-primary text-white rounded-full p-3 -mt-5 shadow-lg hover:bg-secondary">
+            <i class="fas fa-plus text-lg"></i>
+        </button>
+        <button onclick="changeTab('performance')" class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-accent">
+            <i class="fas fa-chart-line text-lg"></i>
+            <span class="text-xs mt-1">Performance</span>
+        </button>
+        <button onclick="changeTab('reports')" class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-accent">
+            <i class="fas fa-file-alt text-lg"></i>
+            <span class="text-xs mt-1">Rapports</span>
+        </button>
+    </nav>
+    
+    <!-- Formulaires (cachés par défaut) -->
+    <!-- Formulaire de dépôt -->
+    <div id="depositForm" class="form-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-11/12 max-h-90vh overflow-y-auto">
+            <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-bold">Faire un dépôt</h3>
+                <button onclick="hideForm('depositForm')" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="p-4">
+                <form>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="depositAccount">Compte</label>
+                        <select id="depositAccount" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700">
+                            <option value="account1">Épargne Classique</option>
+                            <option value="account2">Marge Étude</option>
+                            <option value="account3">Soins Médicaux</option>
+                            <option value="account4">Projet Maison</option>
+                            <option value="account5">Projet Véhicule</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="depositAmount">Montant (CDF)</label>
+                        <input type="number" id="depositAmount" placeholder="Montant en CDF" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700" min="0">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="depositMethod">Méthode de paiement</label>
+                        <select id="depositMethod" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700">
+                            <option value="mobile">Mobile Money</option>
+                            <option value="bank">Virement bancaire</option>
+                            <option value="cash">Espèces</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="depositReference">Référence</label>
+                        <input type="text" id="depositReference" placeholder="Référence de transaction" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="depositNotes">Notes (optionnel)</label>
+                        <textarea id="depositNotes" placeholder="Informations supplémentaires" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700" rows="3"></textarea>
+                    </div>
+                    
+                    <button type="button" class="w-full bg-primary hover:bg-secondary text-white font-medium p-3 rounded-lg">Confirmer le dépôt</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Formulaire de retrait -->
+    <div id="withdrawalForm" class="form-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-11/12 max-h-90vh overflow-y-auto">
+            <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-bold">Faire un retrait</h3>
+                <button onclick="hideForm('withdrawalForm')" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="p-4">
+                <form>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="withdrawalAccount">Compte</label>
+                        <select id="withdrawalAccount" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700">
+                            <option value="account1">Épargne Classique</option>
+                            <option value="account2">Marge Étude</option>
+                            <option value="account3">Soins Médicaux</option>
+                            <option value="account4">Projet Maison</option>
+                            <option value="account5">Projet Véhicule</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Solde disponible: <span id="availableBalance">1,250,000 CDF</span></p>
+                        <label class="block text-sm font-medium mb-2" for="withdrawalAmount">Montant (CDF)</label>
+                        <input type="number" id="withdrawalAmount" placeholder="Montant en CDF" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700" min="0">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="withdrawalMethod">Méthode de retrait</label>
+                        <select id="withdrawalMethod" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700">
+                            <option value="mobile">Mobile Money</option>
+                            <option value="bank">Virement bancaire</option>
+                            <option value="cash">Espèces</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="withdrawalDestination">Destination</label>
+                        <input type="text" id="withdrawalDestination" placeholder="Numéro de téléphone/Compte bancaire" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="withdrawalPurpose">Motif du retrait</label>
+                        <select id="withdrawalPurpose" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700">
+                            <option value="personal">Usage personnel</option>
+                            <option value="education">Frais d'études</option>
+                            <option value="medical">Soins médicaux</option>
+                            <option value="project">Financement de projet</option>
+                            <option value="other">Autre</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="withdrawalNotes">Notes (optionnel)</label>
+                        <textarea id="withdrawalNotes" placeholder="Informations supplémentaires" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700" rows="3"></textarea>
+                    </div>
+                    
+                    <button type="button" class="w-full bg-primary hover:bg-secondary text-white font-medium p-3 rounded-lg">Confirmer le retrait</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Formulaire de création de compte -->
+    <div id="createAccountForm" class="form-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-11/12 max-h-90vh overflow-y-auto">
+            <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-bold">Créer un nouveau compte</h3>
+                <button onclick="hideForm('createAccountForm')" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="p-4">
+                <form>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="accountName">Nom du compte</label>
+                        <input type="text" id="accountName" placeholder="Ex: Fonds d'urgence, Projet voiture..." class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="accountType">Type de compte</label>
+                        <select id="accountType" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700">
+                            <option value="epargne">Épargne Classique</option>
+                            <option value="etude">Marge Étude</option>
+                            <option value="medical">Soins Médicaux</option>
+                            <option value="projet">Projet</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="initialDeposit">Dépôt initial (CDF)</label>
+                        <input type="number" id="initialDeposit" placeholder="Montant en CDF" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700" min="0">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="depositMethod">Méthode de paiement</label>
+                        <select id="depositMethod" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700">
+                            <option value="mobile">Mobile Money</option>
+                            <option value="bank">Virement bancaire</option>
+                            <option value="cash">Espèces</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="accountObjective">Objectif (optionnel)</label>
+                        <input type="text" id="accountObjective" placeholder="Ex: Achat de voiture, Frais universitaires..." class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="targetAmount">Montant cible (optionnel)</label>
+                        <input type="number" id="targetAmount" placeholder="Montant en CDF" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700" min="0">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" for="accountNotes">Notes (optionnel)</label>
+                        <textarea id="accountNotes" placeholder="Informations supplémentaires" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700" rows="3"></textarea>
+                    </div>
+                    
+                    <button type="button" class="w-full bg-primary hover:bg-secondary text-white font-medium p-3 rounded-lg">Créer le compte</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Gestion du drawer
+        document.getElementById('openDrawer').addEventListener('click', function() {
+            document.getElementById('drawer').classList.remove('closed');
+            document.getElementById('drawer').classList.add('open');
+            document.getElementById('drawerOverlay').classList.remove('hidden');
+        });
+        
+        document.getElementById('closeDrawer').addEventListener('click', function() {
+            document.getElementById('drawer').classList.remove('open');
+            document.getElementById('drawer').classList.add('closed');
+            document.getElementById('drawerOverlay').classList.add('hidden');
+        });
+        
+        document.getElementById('drawerOverlay').addEventListener('click', function() {
+            document.getElementById('drawer').classList.remove('open');
+            document.getElementById('drawer').classList.add('closed');
+            document.getElementById('drawerOverlay').classList.add('hidden');
+        });
+        
+        // Gestion des onglets
+        function changeTab(tabId) {
+            // Cacher tous les contenus
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Afficher le contenu sélectionné
+            document.getElementById('content-' + tabId).classList.remove('hidden');
+            
+            // Mettre à jour les styles des onglets
+            document.querySelectorAll('.tab-btn').forEach(tab => {
+                tab.classList.remove('active-tab');
+            });
+            document.getElementById('tab-' + tabId).classList.add('active-tab');
+            
+            // Fermer le drawer si ouvert
+            if (document.getElementById('drawer').classList.contains('open')) {
+                document.getElementById('drawer').classList.remove('open');
+                document.getElementById('drawer').classList.add('closed');
+                document.getElementById('drawerOverlay').classList.add('hidden');
+            }
+        }
+        
+        // Gestion des comptes
+        function changeAccount(accountId) {
+            // Mettre à jour les styles des boutons de compte
+            document.querySelectorAll('.account-btn').forEach(btn => {
+                btn.classList.remove('bg-gray-100', 'dark:bg-gray-700');
+            });
+            document.querySelector(`[data-account="${accountId}"]`).classList.add('bg-gray-100', 'dark:bg-gray-700');
+            
+            // Mettre à jour les informations du compte
+            let accountName = '';
+            let accountType = '';
+            
+            switch(accountId) {
+                case 'account1':
+                    accountName = 'Épargne Classique';
+                    accountType = 'Type: Épargne';
+                    break;
+                case 'account2':
+                    accountName = 'Marge Étude';
+                    accountType = 'Type: Études';
+                    break;
+                case 'account3':
+                    accountName = 'Soins Médicaux';
+                    accountType = 'Type: Soins Médicaux';
+                    break;
+                case 'account4':
+                    accountName = 'Projet Maison';
+                    accountType = 'Type: Projet';
+                    break;
+                case 'account5':
+                    accountName = 'Projet Véhicule';
+                    accountType = 'Type: Projet';
+                    break;
+            }
+            
+            document.getElementById('currentAccountName').textContent = accountName;
+            document.getElementById('currentAccountType').textContent = accountType;
+            
+            // Fermer le drawer
+            document.getElementById('drawer').classList.remove('open');
+            document.getElementById('drawer').classList.add('closed');
+            document.getElementById('drawerOverlay').classList.add('hidden');
+            
+            // Revenir à l'onglet Portefeuille
+            changeTab('portfolio');
+        }
+        
+        // Gestion des formulaires
+        function showForm(formId) {
+            document.getElementById(formId).classList.remove('hidden');
+            // Fermer le drawer si ouvert
+            if (document.getElementById('drawer').classList.contains('open')) {
+                document.getElementById('drawer').classList.remove('open');
+                document.getElementById('drawer').classList.add('closed');
+                document.getElementById('drawerOverlay').classList.add('hidden');
+            }
+        }
+        
+        function hideForm(formId) {
+            document.getElementById(formId).classList.add('hidden');
+        }
+        
+        // Gestion des vues
+        function changeView(viewId) {
+            // Pour l'instant, juste rediriger vers l'onglet correspondant
+            changeTab(viewId);
+            
+            // Fermer le drawer
+            document.getElementById('drawer').classList.remove('open');
+            document.getElementById('drawer').classList.add('closed');
+            document.getElementById('drawerOverlay').classList.add('hidden');
+        }
+        
+        // Initialisation des graphiques
+        document.addEventListener('DOMContentLoaded', function() {
+            // Graphique des types de compte
+            const accountTypeCtx = document.getElementById('accountTypeChart').getContext('2d');
+            const accountTypeChart = new Chart(accountTypeCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Épargne', 'Études', 'Soins Médicaux', 'Projets'],
+                    datasets: [{
+                        label: 'Dépôt Total (Trim. Actuel)',
+                        data: [800000, 300000, 500000, 1200000],
+                        backgroundColor: [
+                            '#3B82F6', // Épargne
+                            '#F59E0B', // Études
+                            '#EF4444', // Soins Médicaux
+                            '#22C55E'  // Projets
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.raw.toLocaleString('fr-CD') + ' CDF';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value / 1000 + 'K';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Graphique de performance
+            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+            const performanceChart = new Chart(performanceCtx, {
+                type: 'line',
+                data: {
+                    labels: ['T1 2023', 'T2 2023', 'T3 2023', 'T4 2023'],
+                    datasets: [
+                        {
+                            label: 'Dépôts',
+                            data: [300000, 350000, 450000, null],
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Marge Brute',
+                            data: [37500, 43750, 56250, null],
+                            borderColor: '#22C55E',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Marge Nette',
+                            data: [30000, 35000, 45000, null],
+                            borderColor: '#F59E0B',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw.toLocaleString('fr-CD') + ' CDF';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value / 1000 + 'K';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+
+</body></html>
