@@ -1202,6 +1202,194 @@
         </div>
     </div>
 
+    <!-- Modals -->
+    <!-- Create Account Modal -->
+    <div class="modal fade" id="createAccountModal" tabindex="-1" aria-labelledby="createAccountModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createAccountModalLabel">Créer un Nouveau Compte</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createAccountForm">
+                        <div class="mb-3">
+                            <label for="accountName" class="form-label">Nom du Compte</label>
+                            <input type="text" class="form-control" id="accountName" required="">
+                        </div>
+                        <div class="mb-3">
+                            <label for="accountType" class="form-label">Catégorie</label>
+                            <select class="form-select" id="accountType" required="">
+                                <option value="" selected="" disabled="">Sélectionner une catégorie</option>
+                                <option value="medical">Soins Médicaux</option>
+                                <option value="project">Projet</option>
+                                <option value="education">Études</option>
+                                <option value="savings">Épargne</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="initialDeposit" class="form-label">Dépôt Initial (€)</label>
+                            <input type="number" class="form-control" id="initialDeposit" min="0" step="10" value="0">
+                        </div>
+                        <div class="mb-3">
+                            <label for="accountDescription" class="form-label">Description (Optionnel)</label>
+                            <textarea class="form-control" id="accountDescription" rows="3"></textarea>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> Les fonds seront transférés de votre compte principal vers ce nouveau compte.
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="saveAccountBtn">Créer le Compte</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deposit Modal -->
+    <div class="modal fade" id="depositModal" tabindex="-1" aria-labelledby="depositModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="depositModalLabel">Faire un Dépôt</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="depositForm">
+                        <div class="mb-3">
+                            <label for="depositAccount" class="form-label">Compte</label>
+                            <select class="form-select" id="depositAccount" required="">
+                                <option value="" selected="" disabled="">Sélectionner un compte</option>
+                                <option value="medical1">Soins Médicaux</option>
+                                <option value="project1">Projet Immobilier</option>
+                                <option value="project2">Projet Véhicule</option>
+                                <option value="education1">Études Supérieures</option>
+                                <option value="savings1">Épargne Classique</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="depositAmount" class="form-label">Montant (€)</label>
+                            <input type="number" class="form-control" id="depositAmount" min="10" step="10" required="">
+                        </div>
+                        <div class="mb-3">
+                            <label for="depositDate" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="depositDate" required="">
+                        </div>
+                        <div class="mb-3">
+                            <label for="depositReference" class="form-label">Référence (Optionnel)</label>
+                            <input type="text" class="form-control" id="depositReference">
+                        </div>
+                        
+                        <!-- Margin Calculation Section -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Calcul des Marges Estimées</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info small">
+                                    <strong>Levier:</strong> 1:4
+                                </div>
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <td>Nouvelle Marge Brute</td>
+                                            <td>
+                                                <span id="newGrossMargin">0</span> €
+                                                <div class="small text-muted">Dépôt × Levier</div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Marge Brute Précédente</td>
+                                            <td><span id="previousGrossMargin">0</span> €</td>
+                                        </tr>
+                                        <tr class="table-active">
+                                            <td><strong>Marge Brute Obtenue</strong></td>
+                                            <td><strong><span id="totalGrossMargin">0</span> €</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Nouvelle Marge Nette</td>
+                                            <td>
+                                                <span id="newNetMargin">0</span> €
+                                                <div class="small text-muted">Marge Brute Nouvelle - Dépôt</div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Marge Nette Précédente</td>
+                                            <td><span id="previousNetMargin">0</span> €</td>
+                                        </tr>
+                                        <tr class="table-active">
+                                            <td><strong>Marge Nette Obtenue</strong></td>
+                                            <td><strong><span id="totalNetMargin">0</span> €</strong></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="confirmDepositBtn">Confirmer le Dépôt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdrawal Modal -->
+    <div class="modal fade" id="withdrawalModal" tabindex="-1" aria-labelledby="withdrawalModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="withdrawalModalLabel">Faire un Retrait</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="withdrawalForm">
+                        <div class="mb-3">
+                            <label for="withdrawalAccount" class="form-label">Compte</label>
+                            <select class="form-select" id="withdrawalAccount" required="">
+                                <option value="" selected="" disabled="">Sélectionner un compte</option>
+                                <option value="medical1">Soins Médicaux (2,500 €)</option>
+                                <option value="project1">Projet Immobilier (15,800 €)</option>
+                                <option value="project2">Projet Véhicule (3,200 €)</option>
+                                <option value="education1">Études Supérieures (7,600 €)</option>
+                                <option value="savings1">Épargne Classique (12,350 €)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="withdrawalAmount" class="form-label">Montant (€)</label>
+                            <input type="number" class="form-control" id="withdrawalAmount" min="10" step="10" required="">
+                            <div class="form-text text-danger" id="withdrawalAmountError" style="display:none">
+                                Le montant du retrait ne peut pas dépasser le solde du compte.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="withdrawalDate" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="withdrawalDate" required="">
+                        </div>
+                        <div class="mb-3">
+                            <label for="withdrawalReason" class="form-label">Motif du Retrait</label>
+                            <input type="text" class="form-control" id="withdrawalReason" required="">
+                        </div>
+                        <div class="mb-3">
+                            <label for="withdrawalReference" class="form-label">Référence (Optionnel)</label>
+                            <input type="text" class="form-control" id="withdrawalReference">
+                        </div>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i> Les retraits peuvent affecter les marges de votre compte.
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="confirmWithdrawalBtn">Confirmer le Retrait</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     
@@ -1732,9 +1920,444 @@
             return document.documentElement.classList.contains('dark');
         }
         
+        // Modal-related functionality
+        // DOM Elements for modals
+        const createAccountBtn = document.querySelector('.sidebar-actions .btn-primary');
+        const depositBtn = document.querySelector('.sidebar-actions .btn-outline-primary:nth-child(2)');
+        const withdrawalBtn = document.querySelector('.sidebar-actions .btn-outline-primary:nth-child(3)');
+        
+        const createAccountModal = new bootstrap.Modal(document.getElementById('createAccountModal'));
+        const depositModal = new bootstrap.Modal(document.getElementById('depositModal'));
+        const withdrawalModal = new bootstrap.Modal(document.getElementById('withdrawalModal'));
+        
+        // Create Account Modal
+        createAccountBtn.addEventListener('click', () => {
+            // Reset form
+            document.getElementById('createAccountForm').reset();
+            createAccountModal.show();
+        });
+        
+        document.getElementById('saveAccountBtn').addEventListener('click', () => {
+            // Validate form
+            const form = document.getElementById('createAccountForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // Get form values
+            const accountName = document.getElementById('accountName').value;
+            const accountType = document.getElementById('accountType').value;
+            const initialDeposit = document.getElementById('initialDeposit').value;
+            
+            // Show loader
+            loaderContainer.style.display = 'flex';
+            
+            // Simulate API call delay
+            setTimeout(() => {
+                // In a real app, this would be an API call to create a new account
+                console.log('Creating account:', { accountName, accountType, initialDeposit });
+                
+                // Add the new account to the sidebar
+                addAccountToSidebar(accountName, accountType, initialDeposit);
+                
+                // Hide loader and modal
+                loaderContainer.style.display = 'none';
+                createAccountModal.hide();
+                
+                // Show success message (you would use a toast or other notification)
+                alert('Compte créé avec succès!');
+            }, 1000);
+        });
+        
+        // Function to add a new account to the sidebar
+        function addAccountToSidebar(name, type, initialBalance) {
+            const accountList = document.querySelector('.account-list');
+            const accountId = 'account_' + Date.now(); // Generate a unique ID
+            
+            // Determine icon and background based on type
+            let iconClass, iconBackground;
+            switch (type) {
+                case 'medical':
+                    iconClass = 'fa-heartbeat';
+                    iconBackground = 'account-medical';
+                    break;
+                case 'project':
+                    iconClass = 'fa-building';
+                    iconBackground = 'account-project';
+                    break;
+                case 'education':
+                    iconClass = 'fa-graduation-cap';
+                    iconBackground = 'account-education';
+                    break;
+                case 'savings':
+                    iconClass = 'fa-piggy-bank';
+                    iconBackground = 'account-savings';
+                    break;
+                default:
+                    iconClass = 'fa-wallet';
+                    iconBackground = 'account-medical'; // Default
+            }
+            
+            // Create new account element
+            const accountElement = document.createElement('div');
+            accountElement.className = 'account-link';
+            accountElement.setAttribute('data-account', accountId);
+            accountElement.innerHTML = `
+                <div class="account-icon ${iconBackground}">
+                    <i class="fas ${iconClass}"></i>
+                </div>
+                <div class="account-name">${name}</div>
+                <div class="account-balance">${initialBalance} €</div>
+            `;
+            
+            // Add event listener
+            accountElement.addEventListener('click', () => {
+                accountLinks.forEach(l => l.classList.remove('active'));
+                accountElement.classList.add('active');
+                
+                loaderContainer.style.display = 'flex';
+                
+                setTimeout(() => {
+                    updateAccountUI(accountId);
+                    loaderContainer.style.display = 'none';
+                }, 500);
+            });
+            
+            // Add to account list
+            accountList.appendChild(accountElement);
+            
+            // Also update account select dropdowns in deposit and withdrawal modals
+            updateAccountSelectDropdowns();
+        }
+        
+        // Function to update account select dropdowns in modals
+        function updateAccountSelectDropdowns() {
+            const depositAccountSelect = document.getElementById('depositAccount');
+            const withdrawalAccountSelect = document.getElementById('withdrawalAccount');
+            
+            // Clear existing options (except the first one)
+            while (depositAccountSelect.options.length > 1) {
+                depositAccountSelect.remove(1);
+            }
+            
+            while (withdrawalAccountSelect.options.length > 1) {
+                withdrawalAccountSelect.remove(1);
+            }
+            
+            // Add accounts from the sidebar
+            const accountLinks = document.querySelectorAll('.account-link');
+            accountLinks.forEach(link => {
+                const accountId = link.getAttribute('data-account');
+                const accountName = link.querySelector('.account-name').textContent;
+                const accountBalance = link.querySelector('.account-balance').textContent;
+                
+                // Add to deposit select
+                const depositOption = document.createElement('option');
+                depositOption.value = accountId;
+                depositOption.textContent = accountName;
+                depositAccountSelect.appendChild(depositOption);
+                
+                // Add to withdrawal select with balance
+                const withdrawalOption = document.createElement('option');
+                withdrawalOption.value = accountId;
+                withdrawalOption.textContent = `${accountName} (${accountBalance})`;
+                withdrawalAccountSelect.appendChild(withdrawalOption);
+            });
+        }
+        
+        // Deposit Modal
+        depositBtn.addEventListener('click', () => {
+            // Reset form and calculations
+            document.getElementById('depositForm').reset();
+            document.getElementById('depositDate').valueAsDate = new Date();
+            document.getElementById('newGrossMargin').textContent = '0';
+            document.getElementById('previousGrossMargin').textContent = '0';
+            document.getElementById('totalGrossMargin').textContent = '0';
+            document.getElementById('newNetMargin').textContent = '0';
+            document.getElementById('previousNetMargin').textContent = '0';
+            document.getElementById('totalNetMargin').textContent = '0';
+            
+            // Update account dropdown
+            updateAccountSelectDropdowns();
+            
+            depositModal.show();
+        });
+        
+        // Calculate margins when deposit amount changes
+        document.getElementById('depositAmount').addEventListener('input', calculateMargins);
+        document.getElementById('depositAccount').addEventListener('change', () => {
+            // Update previous margins based on selected account
+            const accountId = document.getElementById('depositAccount').value;
+            if (accountId) {
+                // In a real app, you would fetch actual data for the account
+                // For demo purposes, we'll use made-up numbers
+                let previousGrossMargin, previousNetMargin;
+                
+                // Get mock data based on account type
+                if (accountId.includes('medical')) {
+                    previousGrossMargin = 900;
+                    previousNetMargin = 600;
+                } else if (accountId.includes('project')) {
+                    previousGrossMargin = 1200;
+                    previousNetMargin = 800;
+                } else if (accountId.includes('education')) {
+                    previousGrossMargin = 600;
+                    previousNetMargin = 400;
+                } else {
+                    previousGrossMargin = 1500;
+                    previousNetMargin = 1000;
+                }
+                
+                document.getElementById('previousGrossMargin').textContent = previousGrossMargin;
+                document.getElementById('previousNetMargin').textContent = previousNetMargin;
+                
+                // Recalculate with new previous values
+                calculateMargins();
+            }
+        });
+        
+        function calculateMargins() {
+            const depositAmount = parseFloat(document.getElementById('depositAmount').value) || 0;
+            const previousGrossMargin = parseFloat(document.getElementById('previousGrossMargin').textContent) || 0;
+            const previousNetMargin = parseFloat(document.getElementById('previousNetMargin').textContent) || 0;
+            
+            // Calculate according to the formula
+            // Levier: 1:4
+            // Nouvelle Marge Brute: Dépôt * Levier
+            // Marge Brute Obtenue: MB Précédente + MB Nouvelle
+            // Nouvelle Marge Nette: MB Nouvelle - Dépôt
+            // Marge Nette Obtenue: MN Précédente + MN Nouvelle
+            
+            const leverage = 4; // Levier 1:4
+            const newGrossMargin = depositAmount * leverage;
+            const totalGrossMargin = previousGrossMargin + newGrossMargin;
+            const newNetMargin = newGrossMargin - depositAmount;
+            const totalNetMargin = previousNetMargin + newNetMargin;
+            
+            // Update display
+            document.getElementById('newGrossMargin').textContent = newGrossMargin.toFixed(2);
+            document.getElementById('totalGrossMargin').textContent = totalGrossMargin.toFixed(2);
+            document.getElementById('newNetMargin').textContent = newNetMargin.toFixed(2);
+            document.getElementById('totalNetMargin').textContent = totalNetMargin.toFixed(2);
+        }
+        
+        document.getElementById('confirmDepositBtn').addEventListener('click', () => {
+            // Validate form
+            const form = document.getElementById('depositForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // Get form values
+            const accountId = document.getElementById('depositAccount').value;
+            const amount = document.getElementById('depositAmount').value;
+            const date = document.getElementById('depositDate').value;
+            const reference = document.getElementById('depositReference').value;
+            
+            // Show loader
+            loaderContainer.style.display = 'flex';
+            
+            // Simulate API call delay
+            setTimeout(() => {
+                // In a real app, this would be an API call to process the deposit
+                console.log('Processing deposit:', { accountId, amount, date, reference });
+                
+                // Update UI to reflect the deposit
+                updateUIAfterDeposit(accountId, amount);
+                
+                // Hide loader and modal
+                loaderContainer.style.display = 'none';
+                depositModal.hide();
+                
+                // Show success message
+                alert(`Dépôt de ${amount} € effectué avec succès!`);
+            }, 1000);
+        });
+        
+        function updateUIAfterDeposit(accountId, amount) {
+            // Update account balance in sidebar
+            const accountLink = document.querySelector(`.account-link[data-account="${accountId}"]`);
+            if (accountLink) {
+                const balanceElement = accountLink.querySelector('.account-balance');
+                const currentBalance = parseFloat(balanceElement.textContent.replace('€', '').replace(',', '').trim());
+                const newBalance = currentBalance + parseFloat(amount);
+                balanceElement.textContent = `${newBalance.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} €`;
+                
+                // If this is the active account, update the KPIs
+                if (accountLink.classList.contains('active')) {
+                    const kpiValues = document.querySelectorAll('.kpi-value');
+                    kpiValues[0].textContent = `${newBalance.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} €`;
+                    
+                    // Update deposit for current quarter
+                    const currentQuarterDeposit = parseFloat(kpiValues[1].textContent.replace('€', '').replace(',', '').trim());
+                    kpiValues[1].textContent = `${(currentQuarterDeposit + parseFloat(amount)).toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} €`;
+                    
+                    // Update margins based on the formula
+                    const leverage = 4;
+                    const newGrossMargin = parseFloat(amount) * leverage;
+                    const currentGrossMargin = parseFloat(kpiValues[2].textContent.replace('€', '').replace(',', '').trim());
+                    const newTotalGrossMargin = currentGrossMargin + newGrossMargin;
+                    kpiValues[2].textContent = `${newTotalGrossMargin.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+                    
+                    const newNetMargin = newGrossMargin - parseFloat(amount);
+                    const currentNetMargin = parseFloat(kpiValues[3].textContent.replace('€', '').replace(',', '').trim());
+                    const newTotalNetMargin = currentNetMargin + newNetMargin;
+                    kpiValues[3].textContent = `${newTotalNetMargin.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+                }
+            }
+            
+            // Update account select dropdowns
+            updateAccountSelectDropdowns();
+            
+            // Add transaction to recent transactions table
+            addTransactionToTable(amount, 'deposit');
+        }
+        
+        // Withdrawal Modal
+        withdrawalBtn.addEventListener('click', () => {
+            // Reset form
+            document.getElementById('withdrawalForm').reset();
+            document.getElementById('withdrawalDate').valueAsDate = new Date();
+            document.getElementById('withdrawalAmountError').style.display = 'none';
+            
+            // Update account dropdown
+            updateAccountSelectDropdowns();
+            
+            withdrawalModal.show();
+        });
+        
+        // Validate withdrawal amount doesn't exceed balance
+        document.getElementById('withdrawalAmount').addEventListener('input', function() {
+            const withdrawalAccount = document.getElementById('withdrawalAccount');
+            if (withdrawalAccount.value) {
+                const selectedOption = withdrawalAccount.options[withdrawalAccount.selectedIndex];
+                const balanceText = selectedOption.textContent.match(/\(([^)]+)\)/)[1];
+                const balance = parseFloat(balanceText.replace('€', '').replace(',', '').trim());
+                const withdrawalAmount = parseFloat(this.value) || 0;
+                
+                if (withdrawalAmount > balance) {
+                    document.getElementById('withdrawalAmountError').style.display = 'block';
+                    document.getElementById('confirmWithdrawalBtn').disabled = true;
+                } else {
+                    document.getElementById('withdrawalAmountError').style.display = 'none';
+                    document.getElementById('confirmWithdrawalBtn').disabled = false;
+                }
+            }
+        });
+        
+        document.getElementById('withdrawalAccount').addEventListener('change', function() {
+            // Revalidate amount when account changes
+            const event = new Event('input');
+            document.getElementById('withdrawalAmount').dispatchEvent(event);
+        });
+        
+        document.getElementById('confirmWithdrawalBtn').addEventListener('click', () => {
+            // Validate form
+            const form = document.getElementById('withdrawalForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // Get form values
+            const accountId = document.getElementById('withdrawalAccount').value;
+            const amount = document.getElementById('withdrawalAmount').value;
+            const date = document.getElementById('withdrawalDate').value;
+            const reason = document.getElementById('withdrawalReason').value;
+            const reference = document.getElementById('withdrawalReference').value;
+            
+            // Show loader
+            loaderContainer.style.display = 'flex';
+            
+            // Simulate API call delay
+            setTimeout(() => {
+                // In a real app, this would be an API call to process the withdrawal
+                console.log('Processing withdrawal:', { accountId, amount, date, reason, reference });
+                
+                // Update UI to reflect the withdrawal
+                updateUIAfterWithdrawal(accountId, amount);
+                
+                // Hide loader and modal
+                loaderContainer.style.display = 'none';
+                withdrawalModal.hide();
+                
+                // Show success message
+                alert(`Retrait de ${amount} € effectué avec succès!`);
+            }, 1000);
+        });
+        
+        function updateUIAfterWithdrawal(accountId, amount) {
+            // Update account balance in sidebar
+            const accountLink = document.querySelector(`.account-link[data-account="${accountId}"]`);
+            if (accountLink) {
+                const balanceElement = accountLink.querySelector('.account-balance');
+                const currentBalance = parseFloat(balanceElement.textContent.replace('€', '').replace(',', '').trim());
+                const newBalance = currentBalance - parseFloat(amount);
+                balanceElement.textContent = `${newBalance.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} €`;
+                
+                // If this is the active account, update the KPIs
+                if (accountLink.classList.contains('active')) {
+                    const kpiValues = document.querySelectorAll('.kpi-value');
+                    kpiValues[0].textContent = `${newBalance.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} €`;
+                }
+            }
+            
+            // Update account select dropdowns
+            updateAccountSelectDropdowns();
+            
+            // Add transaction to recent transactions table
+            addTransactionToTable(amount, 'withdrawal');
+        }
+        
+        // Helper function to add a transaction to the recent transactions table
+        function addTransactionToTable(amount, type) {
+            const transactionsTable = document.querySelector('.tab-pane.active table tbody');
+            if (!transactionsTable) return;
+            
+            const today = new Date();
+            const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+            const reference = `TR-${today.getFullYear().toString().slice(-2)}${(today.getMonth() + 1).toString().padStart(2, '0')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+            
+            const transactionRow = document.createElement('tr');
+            
+            if (type === 'deposit') {
+                transactionRow.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${reference}</td>
+                    <td><span class="transaction-type transaction-deposit">Dépôt</span></td>
+                    <td class="fw-bold text-success">+${amount} €</td>
+                    <td><span class="badge bg-success">Complété</span></td>
+                `;
+            } else {
+                transactionRow.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${reference}</td>
+                    <td><span class="transaction-type transaction-withdrawal">Retrait</span></td>
+                    <td class="fw-bold text-danger">-${amount} €</td>
+                    <td><span class="badge bg-success">Complété</span></td>
+                `;
+            }
+            
+            // Insert at the top of the table
+            transactionsTable.insertBefore(transactionRow, transactionsTable.firstChild);
+            
+            // Remove the last row if there are more than 5 rows
+            if (transactionsTable.children.length > 5) {
+                transactionsTable.removeChild(transactionsTable.lastChild);
+            }
+        }
+
         // Initialize charts when the DOM is fully loaded
         document.addEventListener('DOMContentLoaded', () => {
             initCharts();
+            
+            // Set today's date as default for date inputs
+            const dateInputs = document.querySelectorAll('input[type="date"]');
+            dateInputs.forEach(input => {
+                input.valueAsDate = new Date();
+            });
         });
     </script>
 
