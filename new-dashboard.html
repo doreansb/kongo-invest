@@ -1,0 +1,2831 @@
+<!DOCTYPE html><html lang="fr"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KONGO INVEST - Dashboard</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #5D5CDE;
+            --secondary-color: #7371FC;
+            --accent-color: #4B4ABD;
+            --light-bg: #FFFFFF;
+            --dark-bg: #181818;
+            --light-text: #333333;
+            --dark-text: #F5F5F5;
+            --light-card: #F9F9F9;
+            --dark-card: #252525;
+            --medical-color: #FFA726;
+            --project-color: #42A5F5;
+            --education-color: #66BB6A;
+            --savings-color: #EC407A;
+            --light-border: #E0E0E0;
+            --dark-border: #404040;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            color: var(--light-text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .dark body {
+            background-color: var(--dark-bg);
+            color: var(--dark-text);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background-color: var(--light-card);
+            border-right: 1px solid var(--light-border);
+            height: 100vh;
+            position: fixed;
+            padding-top: 1rem;
+            overflow-y: auto;
+            transition: background-color 0.3s;
+        }
+        
+        .dark .sidebar {
+            background-color: var(--dark-card);
+            border-right: 1px solid var(--dark-border);
+        }
+        
+        .logo {
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .logo img {
+            max-width: 80%;
+            height: auto;
+        }
+        
+        .sidebar-header {
+            font-size: 0.8rem;
+            color: #888;
+            padding: 0.5rem 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .dark .sidebar-header {
+            color: #aaa;
+        }
+        
+        .nav-link {
+            color: var(--light-text);
+            border-radius: 0.25rem;
+            margin: 0.2rem 0.5rem;
+            transition: all 0.3s;
+        }
+        
+        .dark .nav-link {
+            color: var(--dark-text);
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .account-link {
+            padding: 0.5rem 1rem;
+            margin: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .account-link:hover, .account-link.active {
+            background-color: rgba(93, 92, 222, 0.1);
+        }
+        
+        .dark .account-link:hover, .dark .account-link.active {
+            background-color: rgba(93, 92, 222, 0.2);
+        }
+        
+        .account-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .account-medical {
+            background-color: var(--medical-color);
+        }
+        
+        .account-project {
+            background-color: var(--project-color);
+        }
+        
+        .account-education {
+            background-color: var(--education-color);
+        }
+        
+        .account-savings {
+            background-color: var(--savings-color);
+        }
+        
+        .account-name {
+            flex-grow: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .account-balance {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+        
+        .sidebar-actions {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 1.5rem;
+            transition: margin-left 0.3s;
+        }
+        
+        /* Header */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* Cards */
+        .card {
+            background-color: var(--light-card);
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: background-color 0.3s, transform 0.2s;
+            height: 100%;
+        }
+        
+        .dark .card {
+            background-color: var(--dark-card);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .card-header {
+            background-color: transparent;
+            border-bottom: 1px solid var(--light-border);
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .dark .card-header {
+            border-bottom: 1px solid var(--dark-border);
+        }
+        
+        .kpi-card {
+            text-align: center;
+            padding: 1rem;
+        }
+        
+        .kpi-title {
+            font-size: 0.875rem;
+            color: #777;
+            margin-bottom: 0.5rem;
+        }
+        
+        .dark .kpi-title {
+            color: #bbb;
+        }
+        
+        .kpi-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .kpi-change {
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+        }
+        
+        .kpi-change-positive {
+            color: #4CAF50;
+        }
+        
+        .kpi-change-negative {
+            color: #F44336;
+        }
+        
+        /* Tabs */
+        .nav-tabs {
+            border-bottom: 1px solid var(--light-border);
+            margin-bottom: 1rem;
+        }
+        
+        .dark .nav-tabs {
+            border-bottom: 1px solid var(--dark-border);
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            border-bottom: 2px solid transparent;
+            border-radius: 0;
+            color: var(--light-text);
+            margin-right: 1rem;
+            padding: 0.75rem 0.25rem;
+            font-weight: 500;
+        }
+        
+        .dark .nav-tabs .nav-link {
+            color: var(--dark-text);
+        }
+        
+        .nav-tabs .nav-link:hover {
+            border-bottom: 2px solid #ddd;
+            background-color: transparent;
+            color: var(--primary-color);
+        }
+        
+        .dark .nav-tabs .nav-link:hover {
+            border-bottom: 2px solid #555;
+        }
+        
+        .nav-tabs .nav-link.active {
+            border-bottom: 2px solid var(--primary-color);
+            background-color: transparent;
+            color: var(--primary-color);
+        }
+        
+        /* Table */
+        .table {
+            color: var(--light-text);
+        }
+        
+        .dark .table {
+            color: var(--dark-text);
+        }
+        
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: #777;
+        }
+        
+        .dark .table th {
+            color: #bbb;
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+        
+        .account-type-badge {
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .badge-medical {
+            background-color: var(--medical-color);
+        }
+        
+        .badge-project {
+            background-color: var(--project-color);
+        }
+        
+        .badge-education {
+            background-color: var(--education-color);
+        }
+        
+        .badge-savings {
+            background-color: var(--savings-color);
+        }
+        
+        .transaction-type {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            text-align: center;
+            min-width: 70px;
+        }
+        
+        .transaction-deposit {
+            background-color: rgba(76, 175, 80, 0.15);
+            color: #4CAF50;
+        }
+        
+        .dark .transaction-deposit {
+            background-color: rgba(76, 175, 80, 0.25);
+        }
+        
+        .transaction-withdrawal {
+            background-color: rgba(244, 67, 54, 0.15);
+            color: #F44336;
+        }
+        
+        .dark .transaction-withdrawal {
+            background-color: rgba(244, 67, 54, 0.25);
+        }
+        
+        .transaction-interest {
+            background-color: rgba(33, 150, 243, 0.15);
+            color: #2196F3;
+        }
+        
+        .dark .transaction-interest {
+            background-color: rgba(33, 150, 243, 0.25);
+        }
+        
+        /* Account Statistics */
+        .account-stats-card {
+            border-left: 4px solid;
+            transition: transform 0.2s;
+        }
+        
+        .account-stats-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .account-stats-medical {
+            border-left-color: var(--medical-color);
+        }
+        
+        .account-stats-project {
+            border-left-color: var(--project-color);
+        }
+        
+        .account-stats-education {
+            border-left-color: var(--education-color);
+        }
+        
+        .account-stats-savings {
+            border-left-color: var(--savings-color);
+        }
+        
+        .account-stats-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 1rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                width: 280px;
+                transform: translateX(-100%);
+                z-index: 1000;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .toggle-sidebar {
+                display: block;
+            }
+        }
+        
+        @media (min-width: 992px) {
+            .toggle-sidebar {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 767.98px) {
+            .hide-on-mobile {
+                display: none;
+            }
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        /* Dark Mode Toggle */
+        .dark-mode-toggle {
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            margin-left: 1rem;
+        }
+        
+        .dark-mode-toggle:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        .dark .dark-mode-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Loader */
+        .loader-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .dark .loader-container {
+            background-color: rgba(24, 24, 24, 0.7);
+        }
+        
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            padding: 1rem 0;
+        }
+        
+        /* Dropdown menu */
+        .dropdown-menu {
+            background-color: var(--light-card);
+            border: 1px solid var(--light-border);
+        }
+        
+        .dark .dropdown-menu {
+            background-color: var(--dark-card);
+            border: 1px solid var(--dark-border);
+        }
+        
+        .dropdown-item {
+            color: var(--light-text);
+        }
+        
+        .dark .dropdown-item {
+            color: var(--dark-text);
+        }
+        
+        .dropdown-item:hover {
+            background-color: rgba(93, 92, 222, 0.1);
+        }
+        
+        .dark .dropdown-item:hover {
+            background-color: rgba(93, 92, 222, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader -->
+    <div class="loader-container">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <h3 class="text-primary mb-0">KONGO INVEST</h3>
+            <p class="small text-muted">Gestion de Portefeuille</p>
+        </div>
+        
+        <div class="sidebar-header">Mes Comptes</div>
+        
+        <div class="account-list">
+            <div class="account-link active" data-account="medical1">
+                <div class="account-icon account-medical">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="account-name">Soins Médicaux</div>
+                <div class="account-balance">2,500 €</div>
+            </div>
+            
+            <div class="account-link" data-account="project1">
+                <div class="account-icon account-project">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="account-name">Projet Immobilier</div>
+                <div class="account-balance">15,800 €</div>
+            </div>
+            
+            <div class="account-link" data-account="project2">
+                <div class="account-icon account-project">
+                    <i class="fas fa-car"></i>
+                </div>
+                <div class="account-name">Projet Véhicule</div>
+                <div class="account-balance">3,200 €</div>
+            </div>
+            
+            <div class="account-link" data-account="education1">
+                <div class="account-icon account-education">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="account-name">Études Supérieures</div>
+                <div class="account-balance">7,600 €</div>
+            </div>
+            
+            <div class="account-link" data-account="savings1">
+                <div class="account-icon account-savings">
+                    <i class="fas fa-piggy-bank"></i>
+                </div>
+                <div class="account-name">Épargne Classique</div>
+                <div class="account-balance">12,350 €</div>
+            </div>
+        </div>
+        
+        <div class="sidebar-header mt-4">Actions</div>
+        
+        <div class="sidebar-actions">
+            <button class="btn btn-primary btn-sm w-100">
+                <i class="fas fa-plus-circle me-2"></i> Créer un Compte
+            </button>
+            <button class="btn btn-outline-primary btn-sm w-100">
+                <i class="fas fa-arrow-circle-down me-2"></i> Faire un Dépôt
+            </button>
+            <button class="btn btn-outline-primary btn-sm w-100">
+                <i class="fas fa-arrow-circle-up me-2"></i> Faire un Retrait
+            </button>
+            <button class="btn btn-outline-primary btn-sm w-100">
+                <i class="fas fa-file-invoice me-2"></i> Relevé de Transactions
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <button class="btn btn-sm btn-outline-primary toggle-sidebar" id="toggleSidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <h4 class="mb-0">Tableau de Bord</h4>
+            
+            <div class="user-info">
+                <div class="dark-mode-toggle" id="darkModeToggle">
+                    <i class="fas fa-moon"></i>
+                </div>
+                
+                <div class="dropdown">
+                    <div class="d-flex align-items-center" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="avatar">JK</div>
+                        <div class="ms-2 d-none d-md-block">
+                            <div class="fw-bold">Jean Kongo</div>
+                            <div class="small text-muted">Client Premium</div>
+                        </div>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Mon Profil</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Paramètres</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i> Déconnexion</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Account Title -->
+        <div class="d-flex align-items-center mb-4">
+            <div class="account-icon account-medical me-3" style="width: 36px; height: 36px;">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            <div>
+                <h5 class="mb-0" id="currentAccountName">Soins Médicaux</h5>
+                <p class="text-muted mb-0" id="currentAccountType">Compte Soins Médicaux</p>
+            </div>
+        </div>
+        
+        <!-- Tabs -->
+        <ul class="nav nav-tabs" id="accountTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="portfolio-tab" data-bs-toggle="tab" data-bs-target="#portfolio" type="button" role="tab" aria-controls="portfolio" aria-selected="true">Portefeuille</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions" type="button" role="tab" aria-controls="transactions" aria-selected="false">Transactions &amp; Paiements</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance" type="button" role="tab" aria-controls="performance" aria-selected="false">Performance &amp; Rapports</button>
+            </li>
+        </ul>
+        
+        <!-- Tab Content -->
+        <div class="tab-content" id="accountTabContent">
+            <!-- Portfolio Tab -->
+            <div class="tab-pane fade show active" id="portfolio" role="tabpanel" aria-labelledby="portfolio-tab">
+                <!-- KPIs -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card kpi-card">
+                            <div class="kpi-title">Solde Actuel</div>
+                            <div class="kpi-value">2,500 €</div>
+                            <div class="kpi-change kpi-change-positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>8.2% depuis dernier trimestre</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card kpi-card">
+                            <div class="kpi-title">Dépôt Trimestre Actuel</div>
+                            <div class="kpi-value">500 €</div>
+                            <div class="kpi-change kpi-change-positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>25% depuis dernier trimestre</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card kpi-card">
+                            <div class="kpi-title">Marge Brute Actuelle</div>
+                            <div class="kpi-value">125 €</div>
+                            <div class="kpi-change kpi-change-positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>6.4% depuis dernier trimestre</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card kpi-card">
+                            <div class="kpi-title">Marge Nette Actuelle</div>
+                            <div class="kpi-value">112.50 €</div>
+                            <div class="kpi-change kpi-change-positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>5.8% depuis dernier trimestre</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Portfolio Content with Tabs -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <ul class="nav nav-pills" id="portfolioSubTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="tableau-bord-portfolio-tab" data-bs-toggle="pill" data-bs-target="#tableau-bord-portfolio" type="button" role="tab" aria-controls="tableau-bord-portfolio" aria-selected="true">Performance</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="statistics-portfolio-tab" data-bs-toggle="pill" data-bs-target="#statistics-portfolio" type="button" role="tab" aria-controls="statistics-portfolio" aria-selected="false">Statistiques(dashboard)</button>
+                            </li>
+                        </ul>
+                        
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="portfolioYearDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                2023
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="portfolioYearDropdown">
+                                <li><a class="dropdown-item" href="#">2023</a></li>
+                                <li><a class="dropdown-item" href="#">2022</a></li>
+                                <li><a class="dropdown-item" href="#">2021</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="tab-content" id="portfolioSubTabContent">
+                            <!-- Tableau de Bord View (Like in the image) -->
+                            <div class="tab-pane fade show active" id="tableau-bord-portfolio" role="tabpanel" aria-labelledby="tableau-bord-portfolio-tab">
+                                <div class="row mb-4">
+                                   <!--  <div class="col-md-3">
+                                        Left Sidebar Menu 
+                                        <div class="list-group">
+                                            <a href="#" class="list-group-item list-group-item-action active">Tous les comptes</a>
+                                            <a href="#" class="list-group-item list-group-item-action text-primary">CMFSM</a>
+                                            <a href="#" class="list-group-item list-group-item-action">CMFE</a>
+                                            <a href="#" class="list-group-item list-group-item-action">CMFP</a>
+                                            <a href="#" class="list-group-item list-group-item-action">CMR</a>
+                                            <div class="border-top my-3"></div>
+                                            <a href="#" class="list-group-item list-group-item-action">Dépôt</a>
+                                            <a href="#" class="list-group-item list-group-item-action">Retrait</a>
+                                            <a href="#" class="list-group-item list-group-item-action">Relevé des transactions</a>
+                                        </div>-->
+                                    </div>
+                                    
+                                    <div class="col-md-9">
+                                        <!-- Main Content Area -->
+                                        
+                                        <div class="mb-4">
+                                            <h6 class="text-primary">Tableau de bord</h6>
+                                        </div>
+                                        
+                                        <!-- Performance Trimestrielle Section -->
+                                        <h6 class="mt-4 mb-3">Performance trimestrielle</h6>
+                                        
+                                        <!-- Trimester Tabs -->
+                                        <ul class="nav nav-tabs mb-3" id="portfolioTrimesterTabs" role="tablist">
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link active text-primary" id="portfolio-premier-trimestre-tab" data-bs-toggle="tab" data-bs-target="#portfolio-premier-trimestre" type="button" role="tab" aria-controls="portfolio-premier-trimestre" aria-selected="true">Premier trimestre</button>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link" id="portfolio-deuxieme-trimestre-tab" data-bs-toggle="tab" data-bs-target="#portfolio-deuxieme-trimestre" type="button" role="tab" aria-controls="portfolio-deuxieme-trimestre" aria-selected="false">Deuxième trimestre</button>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link" id="portfolio-troisieme-trimestre-tab" data-bs-toggle="tab" data-bs-target="#portfolio-troisieme-trimestre" type="button" role="tab" aria-controls="portfolio-troisieme-trimestre" aria-selected="false">Troisième trimestre</button>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link" id="portfolio-quatrieme-trimestre-tab" data-bs-toggle="tab" data-bs-target="#portfolio-quatrieme-trimestre" type="button" role="tab" aria-controls="portfolio-quatrieme-trimestre" aria-selected="false">Quatrième trimestre</button>
+                                            </li>
+                                        </ul>
+                                        
+                                        <!-- Trimester Content -->
+                                        <div class="tab-content" id="portfolioTrimesterTabContent">
+                                            <!-- Premier Trimestre -->
+                                            <div class="tab-pane fade show active" id="portfolio-premier-trimestre" role="tabpanel" aria-labelledby="portfolio-premier-trimestre-tab">
+                                                <h6 class="mb-3">Performance premier trimestre</h6>
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Période</th>
+                                                                <th>janvier</th>
+                                                                <th>février</th>
+                                                                <th>mars</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Dépôt total</td>
+                                                                <td>300</td>
+                                                                <td></td>
+                                                                <td>300</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Marge brute obtenue</td>
+                                                                <td>0</td>
+                                                                <td></td>
+                                                                <td>900</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Marge Nette obtenue</td>
+                                                                <td>0</td>
+                                                                <td></td>
+                                                                <td>600</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Deuxième Trimestre -->
+                                            <div class="tab-pane fade" id="portfolio-deuxieme-trimestre" role="tabpanel" aria-labelledby="portfolio-deuxieme-trimestre-tab">
+                                                <h6 class="mb-3">Performance deuxième trimestre</h6>
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Période</th>
+                                                                <th>avril</th>
+                                                                <th>mai</th>
+                                                                <th>juin</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Dépôt total</td>
+                                                                <td>150</td>
+                                                                <td>200</td>
+                                                                <td>200</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Marge brute obtenue</td>
+                                                                <td>600</td>
+                                                                <td>800</td>
+                                                                <td>800</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Marge Nette obtenue</td>
+                                                                <td>450</td>
+                                                                <td>600</td>
+                                                                <td>600</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Troisième Trimestre -->
+                                            <div class="tab-pane fade" id="portfolio-troisieme-trimestre" role="tabpanel" aria-labelledby="portfolio-troisieme-trimestre-tab">
+                                                <h6 class="mb-3">Performance troisième trimestre</h6>
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Période</th>
+                                                                <th>juillet</th>
+                                                                <th>août</th>
+                                                                <th>septembre</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Dépôt total</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Marge brute obtenue</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Marge Nette obtenue</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Quatrième Trimestre -->
+                                            <div class="tab-pane fade" id="portfolio-quatrieme-trimestre" role="tabpanel" aria-labelledby="portfolio-quatrieme-trimestre-tab">
+                                                <h6 class="mb-3">Performance quatrième trimestre</h6>
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Période</th>
+                                                                <th>octobre</th>
+                                                                <th>novembre</th>
+                                                                <th>décembre</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Dépôt total</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Marge brute obtenue</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Marge Nette obtenue</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Statistics View (Original content) -->
+                            <div class="tab-pane fade" id="statistics-portfolio" role="tabpanel" aria-labelledby="statistics-portfolio-tab">
+                                <div class="row g-4">
+                                    <!-- Account Statistics -->
+                                    <div class="col-lg-6">
+                                        <div class="card h-100">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Statistiques des Comptes</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <div class="card account-stats-card account-stats-medical">
+                                                            <div class="card-body d-flex align-items-center">
+                                                                <div class="account-stats-icon account-medical">
+                                                                    <i class="fas fa-heartbeat"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <h6 class="mb-1">Soins Médicaux</h6>
+                                                                    <p class="mb-0">1 compte</p>
+                                                                    <p class="mb-0 small">Dépôt: 500 €</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="col-md-6">
+                                                        <div class="card account-stats-card account-stats-project">
+                                                            <div class="card-body d-flex align-items-center">
+                                                                <div class="account-stats-icon account-project">
+                                                                    <i class="fas fa-building"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <h6 class="mb-1">Projets</h6>
+                                                                    <p class="mb-0">2 comptes</p>
+                                                                    <p class="mb-0 small">Dépôt: 1,200 €</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="col-md-6">
+                                                        <div class="card account-stats-card account-stats-education">
+                                                            <div class="card-body d-flex align-items-center">
+                                                                <div class="account-stats-icon account-education">
+                                                                    <i class="fas fa-graduation-cap"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <h6 class="mb-1">Études</h6>
+                                                                    <p class="mb-0">1 compte</p>
+                                                                    <p class="mb-0 small">Dépôt: 300 €</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="col-md-6">
+                                                        <div class="card account-stats-card account-stats-savings">
+                                                            <div class="card-body d-flex align-items-center">
+                                                                <div class="account-stats-icon account-savings">
+                                                                    <i class="fas fa-piggy-bank"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <h6 class="mb-1">Épargne</h6>
+                                                                    <p class="mb-0">1 compte</p>
+                                                                    <p class="mb-0 small">Dépôt: 800 €</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="mt-4">
+                                                    <canvas id="accountTypeChart" height="200"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Quarterly Deposits Chart -->
+                                    <div class="col-lg-6">
+                                        <div class="card h-100">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Évolution des Dépôts Trimestriels</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <canvas id="quarterlyDepositsChart" height="250"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Transactions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Transactions Récentes</h6>
+                        <a href="#" class="btn btn-sm btn-link">Voir Tout</a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Référence</th>
+                                        <th>Type</th>
+                                        <th>Montant</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>15/06/2023</td>
+                                        <td>TR-2306-001</td>
+                                        <td><span class="transaction-type transaction-deposit">Dépôt</span></td>
+                                        <td class="fw-bold text-success">+200 €</td>
+                                        <td><span class="badge bg-success">Complété</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>02/05/2023</td>
+                                        <td>TR-2305-015</td>
+                                        <td><span class="transaction-type transaction-interest">Intérêt</span></td>
+                                        <td class="fw-bold text-primary">+37.50 €</td>
+                                        <td><span class="badge bg-success">Complété</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>15/04/2023</td>
+                                        <td>TR-2304-008</td>
+                                        <td><span class="transaction-type transaction-deposit">Dépôt</span></td>
+                                        <td class="fw-bold text-success">+150 €</td>
+                                        <td><span class="badge bg-success">Complété</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>28/03/2023</td>
+                                        <td>TR-2303-022</td>
+                                        <td><span class="transaction-type transaction-withdrawal">Retrait</span></td>
+                                        <td class="fw-bold text-danger">-75 €</td>
+                                        <td><span class="badge bg-success">Complété</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>15/03/2023</td>
+                                        <td>TR-2303-012</td>
+                                        <td><span class="transaction-type transaction-deposit">Dépôt</span></td>
+                                        <td class="fw-bold text-success">+150 €</td>
+                                        <td><span class="badge bg-success">Complété</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Transactions & Payments Tab -->
+            <div class="tab-pane fade" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Historique des Transactions</h6>
+                                <div class="d-flex">
+                                    <button class="btn btn-sm btn-outline-secondary me-2">
+                                        <i class="fas fa-filter me-1"></i> Filtrer
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-download me-1"></i> Exporter
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Référence</th>
+                                                <th>Type</th>
+                                                <th>Description</th>
+                                                <th>Montant</th>
+                                                <th>Solde Après</th>
+                                                <th>Statut</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>15/06/2023</td>
+                                                <td>TR-2306-001</td>
+                                                <td><span class="transaction-type transaction-deposit">Dépôt</span></td>
+                                                <td>Dépôt Trimestriel</td>
+                                                <td class="fw-bold text-success">+200 €</td>
+                                                <td>2,500 €</td>
+                                                <td><span class="badge bg-success">Complété</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-link p-0">
+                                                        <i class="fas fa-file-invoice"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>02/05/2023</td>
+                                                <td>TR-2305-015</td>
+                                                <td><span class="transaction-type transaction-interest">Intérêt</span></td>
+                                                <td>Intérêt Q2 2023</td>
+                                                <td class="fw-bold text-primary">+37.50 €</td>
+                                                <td>2,300 €</td>
+                                                <td><span class="badge bg-success">Complété</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-link p-0">
+                                                        <i class="fas fa-file-invoice"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>15/04/2023</td>
+                                                <td>TR-2304-008</td>
+                                                <td><span class="transaction-type transaction-deposit">Dépôt</span></td>
+                                                <td>Dépôt Mensuel</td>
+                                                <td class="fw-bold text-success">+150 €</td>
+                                                <td>2,262.50 €</td>
+                                                <td><span class="badge bg-success">Complété</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-link p-0">
+                                                        <i class="fas fa-file-invoice"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>28/03/2023</td>
+                                                <td>TR-2303-022</td>
+                                                <td><span class="transaction-type transaction-withdrawal">Retrait</span></td>
+                                                <td>Consultation Médicale</td>
+                                                <td class="fw-bold text-danger">-75 €</td>
+                                                <td>2,112.50 €</td>
+                                                <td><span class="badge bg-success">Complété</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-link p-0">
+                                                        <i class="fas fa-file-invoice"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>15/03/2023</td>
+                                                <td>TR-2303-012</td>
+                                                <td><span class="transaction-type transaction-deposit">Dépôt</span></td>
+                                                <td>Dépôt Mensuel</td>
+                                                <td class="fw-bold text-success">+150 €</td>
+                                                <td>2,187.50 €</td>
+                                                <td><span class="badge bg-success">Complété</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-link p-0">
+                                                        <i class="fas fa-file-invoice"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>15/02/2023</td>
+                                                <td>TR-2302-005</td>
+                                                <td><span class="transaction-type transaction-deposit">Dépôt</span></td>
+                                                <td>Dépôt Mensuel</td>
+                                                <td class="fw-bold text-success">+150 €</td>
+                                                <td>2,037.50 €</td>
+                                                <td><span class="badge bg-success">Complété</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-link p-0">
+                                                        <i class="fas fa-file-invoice"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>02/02/2023</td>
+                                                <td>TR-2302-001</td>
+                                                <td><span class="transaction-type transaction-interest">Intérêt</span></td>
+                                                <td>Intérêt Q1 2023</td>
+                                                <td class="fw-bold text-primary">+37.50 €</td>
+                                                <td>1,887.50 €</td>
+                                                <td><span class="badge bg-success">Complété</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-link p-0">
+                                                        <i class="fas fa-file-invoice"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <nav aria-label="Pagination des transactions">
+                                    <ul class="pagination justify-content-center mb-0">
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Précédent</a>
+                                        </li>
+                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="#">Suivant</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Paiements Programmés</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i> Aucun paiement programmé pour ce compte.
+                                </div>
+                                <button class="btn btn-primary">
+                                    <i class="fas fa-plus-circle me-2"></i> Programmer un Paiement
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Dépôts Automatiques</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3 p-3 border rounded">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0">Dépôt Mensuel</h6>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="automaticDeposit" checked="">
+                                            <label class="form-check-label" for="automaticDeposit">Actif</label>
+                                        </div>
+                                    </div>
+                                    <p class="mb-1 small">Montant: <span class="fw-bold">150 €</span></p>
+                                    <p class="mb-1 small">Fréquence: <span class="fw-bold">Mensuelle (15 du mois)</span></p>
+                                    <p class="mb-0 small">Prochain dépôt: <span class="fw-bold">15/07/2023</span></p>
+                                </div>
+                                <button class="btn btn-outline-primary">
+                                    <i class="fas fa-edit me-2"></i> Modifier
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Performance & Reports Tab -->
+            <div class="tab-pane fade" id="performance" role="tabpanel" aria-labelledby="performance-tab">
+                <!-- Tabs Navigation for Performance Section -->
+                <ul class="nav nav-tabs mb-3" id="performanceSubTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="tableau-bord-tab" data-bs-toggle="tab" data-bs-target="#tableau-bord" type="button" role="tab" aria-controls="tableau-bord" aria-selected="true">Tableau de bord</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="performance-charts-tab" data-bs-toggle="tab" data-bs-target="#performance-charts" type="button" role="tab" aria-controls="performance-charts" aria-selected="false">Performance</button>
+                    </li>
+                </ul>
+                
+                <!-- Performance Sub-Tabs Content -->
+                <div class="tab-content" id="performanceSubTabContent">
+                    <!-- Tableau de Bord Tab (Simple Table View) -->
+                    <div class="tab-pane fade show active" id="tableau-bord" role="tabpanel" aria-labelledby="tableau-bord-tab">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Performance trimestrielle</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Trimester Selection Tabs -->
+                                <ul class="nav nav-pills mb-4" id="trimesterTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="premier-trimestre-tab" data-bs-toggle="pill" data-bs-target="#premier-trimestre" type="button" role="tab" aria-controls="premier-trimestre" aria-selected="true">Premier trimestre</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="deuxieme-trimestre-tab" data-bs-toggle="pill" data-bs-target="#deuxieme-trimestre" type="button" role="tab" aria-controls="deuxieme-trimestre" aria-selected="false">Deuxième trimestre</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="troisieme-trimestre-tab" data-bs-toggle="pill" data-bs-target="#troisieme-trimestre" type="button" role="tab" aria-controls="troisieme-trimestre" aria-selected="false">Troisième trimestre</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="quatrieme-trimestre-tab" data-bs-toggle="pill" data-bs-target="#quatrieme-trimestre" type="button" role="tab" aria-controls="quatrieme-trimestre" aria-selected="false">Quatrième trimestre</button>
+                                    </li>
+                                </ul>
+                                
+                                <!-- Trimester Content -->
+                                <div class="tab-content" id="trimesterTabContent">
+                                    <!-- Premier Trimestre -->
+                                    <div class="tab-pane fade show active" id="premier-trimestre" role="tabpanel" aria-labelledby="premier-trimestre-tab">
+                                        <h6 class="mb-3">Performance premier trimestre</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Période</th>
+                                                        <th>janvier</th>
+                                                        <th>février</th>
+                                                        <th>mars</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Dépôt total</td>
+                                                        <td>300</td>
+                                                        <td></td>
+                                                        <td>300</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Marge brute obtenue</td>
+                                                        <td>0</td>
+                                                        <td></td>
+                                                        <td>900</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Marge Nette obtenue</td>
+                                                        <td>0</td>
+                                                        <td></td>
+                                                        <td>600</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Deuxième Trimestre -->
+                                    <div class="tab-pane fade" id="deuxieme-trimestre" role="tabpanel" aria-labelledby="deuxieme-trimestre-tab">
+                                        <h6 class="mb-3">Performance deuxième trimestre</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Période</th>
+                                                        <th>avril</th>
+                                                        <th>mai</th>
+                                                        <th>juin</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Dépôt total</td>
+                                                        <td>150</td>
+                                                        <td>200</td>
+                                                        <td>200</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Marge brute obtenue</td>
+                                                        <td>600</td>
+                                                        <td>800</td>
+                                                        <td>800</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Marge Nette obtenue</td>
+                                                        <td>450</td>
+                                                        <td>600</td>
+                                                        <td>600</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Troisième Trimestre -->
+                                    <div class="tab-pane fade" id="troisieme-trimestre" role="tabpanel" aria-labelledby="troisieme-trimestre-tab">
+                                        <h6 class="mb-3">Performance troisième trimestre</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Période</th>
+                                                        <th>juillet</th>
+                                                        <th>août</th>
+                                                        <th>septembre</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Dépôt total</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Marge brute obtenue</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Marge Nette obtenue</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Quatrième Trimestre -->
+                                    <div class="tab-pane fade" id="quatrieme-trimestre" role="tabpanel" aria-labelledby="quatrieme-trimestre-tab">
+                                        <h6 class="mb-3">Performance quatrième trimestre</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Période</th>
+                                                        <th>octobre</th>
+                                                        <th>novembre</th>
+                                                        <th>décembre</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Dépôt total</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Marge brute obtenue</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Marge Nette obtenue</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Yearly Summary Table -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Résumé annuel 2023</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Trimestre</th>
+                                                <th>Dépôt Total</th>
+                                                <th>Marge Brute</th>
+                                                <th>Marge Nette</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Premier Trimestre</td>
+                                                <td>600 €</td>
+                                                <td>900 €</td>
+                                                <td>600 €</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Deuxième Trimestre</td>
+                                                <td>550 €</td>
+                                                <td>2,200 €</td>
+                                                <td>1,650 €</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Troisième Trimestre</td>
+                                                <td>- €</td>
+                                                <td>- €</td>
+                                                <td>- €</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Quatrième Trimestre</td>
+                                                <td>- €</td>
+                                                <td>- €</td>
+                                                <td>- €</td>
+                                            </tr>
+                                            <tr class="table-active">
+                                                <td><strong>Total</strong></td>
+                                                <td><strong>1,150 €</strong></td>
+                                                <td><strong>3,100 €</strong></td>
+                                                <td><strong>2,250 €</strong></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Performance Charts Tab (Graphical View) -->
+                    <div class="tab-pane fade" id="performance-charts" role="tabpanel" aria-labelledby="performance-charts-tab">
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Performance Trimestrielle</h6>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="performanceYearDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                                2023
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="performanceYearDropdown">
+                                                <li><a class="dropdown-item" href="#">2023</a></li>
+                                                <li><a class="dropdown-item" href="#">2022</a></li>
+                                                <li><a class="dropdown-item" href="#">2021</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="performanceChart" height="300"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Croissance des Marges</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="marginsChart" height="250"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Évolution du Portefeuille</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="portfolioEvolutionChart" height="250"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Rapports Disponibles</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6 col-lg-4">
+                                                <div class="p-3 border rounded">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="fas fa-file-pdf text-danger me-2 fa-lg"></i>
+                                                        <h6 class="mb-0">Rapport Trimestriel Q2 2023</h6>
+                                                    </div>
+                                                    <p class="small mb-2">Généré le 01/07/2023</p>
+                                                    <button class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-download me-1"></i> Télécharger
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-lg-4">
+                                                <div class="p-3 border rounded">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="fas fa-file-pdf text-danger me-2 fa-lg"></i>
+                                                        <h6 class="mb-0">Rapport Trimestriel Q1 2023</h6>
+                                                    </div>
+                                                    <p class="small mb-2">Généré le 01/04/2023</p>
+                                                    <button class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-download me-1"></i> Télécharger
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-lg-4">
+                                                <div class="p-3 border rounded">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="fas fa-file-pdf text-danger me-2 fa-lg"></i>
+                                                        <h6 class="mb-0">Rapport Annuel 2022</h6>
+                                                    </div>
+                                                    <p class="small mb-2">Généré le 15/01/2023</p>
+                                                    <button class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-download me-1"></i> Télécharger
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Create Account Modal -->
+    <div class="modal fade" id="createAccountModal" tabindex="-1" aria-labelledby="createAccountModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createAccountModalLabel">Créer un Nouveau Compte</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createAccountForm">
+                        <div class="mb-3">
+                            <label for="accountName" class="form-label">Nom du Compte</label>
+                            <input type="text" class="form-control" id="accountName" required="">
+                        </div>
+                        <div class="mb-3">
+                            <label for="accountType" class="form-label">Catégorie</label>
+                            <select class="form-select" id="accountType" required="">
+                                <option value="" selected="" disabled="">Sélectionner une catégorie</option>
+                                <option value="medical">Soins Médicaux</option>
+                                <option value="project">Projet</option>
+                                <option value="education">Études</option>
+                                <option value="savings">Épargne</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="initialDeposit" class="form-label">Dépôt Initial (€)</label>
+                            <input type="number" class="form-control" id="initialDeposit" min="0" step="10" value="0">
+                        </div>
+                        <div class="mb-3">
+                            <label for="accountDescription" class="form-label">Description (Optionnel)</label>
+                            <textarea class="form-control" id="accountDescription" rows="3"></textarea>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> Les fonds seront transférés de votre compte principal vers ce nouveau compte.
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="saveAccountBtn">Créer le Compte</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deposit Modal -->
+    <div class="modal fade" id="depositModal" tabindex="-1" aria-labelledby="depositModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="depositModalLabel">Faire un Dépôt</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="depositForm">
+                        <div class="mb-3">
+                            <label for="depositAccount" class="form-label">Compte</label>
+                            <select class="form-select" id="depositAccount" required="">
+                                <option value="" selected="" disabled="">Sélectionner un compte</option>
+                                <option value="medical1">Soins Médicaux</option>
+                                <option value="project1">Projet Immobilier</option>
+                                <option value="project2">Projet Véhicule</option>
+                                <option value="education1">Études Supérieures</option>
+                                <option value="savings1">Épargne Classique</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="depositAmount" class="form-label">Montant (€)</label>
+                            <input type="number" class="form-control" id="depositAmount" min="10" step="10" required="">
+                        </div>
+                        <div class="mb-3">
+                            <label for="depositDate" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="depositDate" required="">
+                        </div>
+                        <div class="mb-3">
+                            <label for="depositReference" class="form-label">Référence (Optionnel)</label>
+                            <input type="text" class="form-control" id="depositReference">
+                        </div>
+                        
+                        <!-- Margin Calculation Section -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Calcul des Marges Estimées</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info small">
+                                    <strong>Levier:</strong> 1:4
+                                </div>
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <td>Nouvelle Marge Brute</td>
+                                            <td>
+                                                <span id="newGrossMargin">0</span> €
+                                                <div class="small text-muted">Dépôt × Levier</div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Marge Brute Précédente</td>
+                                            <td><span id="previousGrossMargin">0</span> €</td>
+                                        </tr>
+                                        <tr class="table-active">
+                                            <td><strong>Marge Brute Obtenue</strong></td>
+                                            <td><strong><span id="totalGrossMargin">0</span> €</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Nouvelle Marge Nette</td>
+                                            <td>
+                                                <span id="newNetMargin">0</span> €
+                                                <div class="small text-muted">Marge Brute Nouvelle - Dépôt</div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Marge Nette Précédente</td>
+                                            <td><span id="previousNetMargin">0</span> €</td>
+                                        </tr>
+                                        <tr class="table-active">
+                                            <td><strong>Marge Nette Obtenue</strong></td>
+                                            <td><strong><span id="totalNetMargin">0</span> €</strong></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="confirmDepositBtn">Confirmer le Dépôt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdrawal Modal -->
+    <div class="modal fade" id="withdrawalModal" tabindex="-1" aria-labelledby="withdrawalModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="withdrawalModalLabel">Faire un Retrait</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="withdrawalForm">
+                        <div class="mb-3">
+                            <label for="withdrawalAccount" class="form-label">Compte</label>
+                            <select class="form-select" id="withdrawalAccount" required="">
+                                <option value="" selected="" disabled="">Sélectionner un compte</option>
+                                <option value="medical1">Soins Médicaux (2,500 €)</option>
+                                <option value="project1">Projet Immobilier (15,800 €)</option>
+                                <option value="project2">Projet Véhicule (3,200 €)</option>
+                                <option value="education1">Études Supérieures (7,600 €)</option>
+                                <option value="savings1">Épargne Classique (12,350 €)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="withdrawalAmount" class="form-label">Montant (€)</label>
+                            <input type="number" class="form-control" id="withdrawalAmount" min="10" step="10" required="">
+                            <div class="form-text text-danger" id="withdrawalAmountError" style="display:none">
+                                Le montant du retrait ne peut pas dépasser le solde du compte.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="withdrawalDate" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="withdrawalDate" required="">
+                        </div>
+                        <div class="mb-3">
+                            <label for="withdrawalReason" class="form-label">Motif du Retrait</label>
+                            <input type="text" class="form-control" id="withdrawalReason" required="">
+                        </div>
+                        <div class="mb-3">
+                            <label for="withdrawalReference" class="form-label">Référence (Optionnel)</label>
+                            <input type="text" class="form-control" id="withdrawalReference">
+                        </div>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i> Les retraits peuvent affecter les marges de votre compte.
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="confirmWithdrawalBtn">Confirmer le Retrait</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Dark Mode Detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            
+            // Update charts when theme changes
+            updateChartsTheme();
+        });
+        
+        // DOM Elements
+        const sidebarToggle = document.getElementById('toggleSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const loaderContainer = document.querySelector('.loader-container');
+        
+        // Toggle Sidebar (for mobile)
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+        });
+        
+        // Dark Mode Toggle
+        darkModeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            // Update charts when theme changes
+            updateChartsTheme();
+        });
+        
+        // Account Links
+        const accountLinks = document.querySelectorAll('.account-link');
+        accountLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                // Remove active class from all links
+                accountLinks.forEach(l => l.classList.remove('active'));
+                // Add active class to clicked link
+                link.classList.add('active');
+                
+                // Get account data (in a real app, would fetch from API)
+                const accountId = link.getAttribute('data-account');
+                
+                // Show loader
+                loaderContainer.style.display = 'flex';
+                
+                // Simulate API call delay
+                setTimeout(() => {
+                    // Update UI based on selected account (This would normally be replaced with actual data)
+                    updateAccountUI(accountId);
+                    
+                    // Hide loader
+                    loaderContainer.style.display = 'none';
+                }, 500);
+            });
+        });
+        
+        // Function to update UI based on selected account
+        function updateAccountUI(accountId) {
+            // This is a mock function, in a real application you would fetch data from an API
+            const accountData = {
+                'medical1': {
+                    name: 'Soins Médicaux',
+                    type: 'Compte Soins Médicaux',
+                    balance: '2,500 €',
+                    quarterDeposit: '500 €',
+                    grossMargin: '125 €',
+                    netMargin: '112.50 €',
+                    iconClass: 'fa-heartbeat',
+                    iconBackground: 'account-medical'
+                },
+                'project1': {
+                    name: 'Projet Immobilier',
+                    type: 'Compte Projet',
+                    balance: '15,800 €',
+                    quarterDeposit: '800 €',
+                    grossMargin: '395 €',
+                    netMargin: '355.50 €',
+                    iconClass: 'fa-building',
+                    iconBackground: 'account-project'
+                },
+                'project2': {
+                    name: 'Projet Véhicule',
+                    type: 'Compte Projet',
+                    balance: '3,200 €',
+                    quarterDeposit: '400 €',
+                    grossMargin: '80 €',
+                    netMargin: '72 €',
+                    iconClass: 'fa-car',
+                    iconBackground: 'account-project'
+                },
+                'education1': {
+                    name: 'Études Supérieures',
+                    type: 'Compte Études',
+                    balance: '7,600 €',
+                    quarterDeposit: '300 €',
+                    grossMargin: '190 €',
+                    netMargin: '171 €',
+                    iconClass: 'fa-graduation-cap',
+                    iconBackground: 'account-education'
+                },
+                'savings1': {
+                    name: 'Épargne Classique',
+                    type: 'Compte Épargne',
+                    balance: '12,350 €',
+                    quarterDeposit: '800 €',
+                    grossMargin: '308.75 €',
+                    netMargin: '277.87 €',
+                    iconClass: 'fa-piggy-bank',
+                    iconBackground: 'account-savings'
+                }
+            };
+            
+            const account = accountData[accountId];
+            
+            // Update account header
+            document.getElementById('currentAccountName').textContent = account.name;
+            document.getElementById('currentAccountType').textContent = account.type;
+            
+            // Update account icon
+            const accountIcon = document.querySelector('.account-icon');
+            accountIcon.className = `account-icon ${account.iconBackground} me-3`;
+            accountIcon.innerHTML = `<i class="fas ${account.iconClass}"></i>`;
+            
+            // Update KPI cards
+            const kpiValues = document.querySelectorAll('.kpi-value');
+            kpiValues[0].textContent = account.balance;
+            kpiValues[1].textContent = account.quarterDeposit;
+            kpiValues[2].textContent = account.grossMargin;
+            kpiValues[3].textContent = account.netMargin;
+            
+            // In a real app, you would also update:
+            // - Charts with new data
+            // - Transaction history
+            // - Other account-specific information
+            
+            // For this demo, we'll just update the charts with random data
+            updateCharts();
+        }
+        
+        // Charts initialization
+        function initCharts() {
+            // Account Types Chart
+            const accountTypeCtx = document.getElementById('accountTypeChart').getContext('2d');
+            const accountTypeChart = new Chart(accountTypeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Soins Médicaux', 'Projets', 'Études', 'Épargne'],
+                    datasets: [{
+                        data: [2500, 19000, 7600, 12350],
+                        backgroundColor: [
+                            '#FFA726', // Medical
+                            '#42A5F5', // Project
+                            '#66BB6A', // Education
+                            '#EC407A'  // Savings
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                color: isDarkMode() ? '#F5F5F5' : '#333333'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label;
+                                    const value = context.raw;
+                                    return `${label}: ${value} € (${Math.round(value / 41450 * 100)}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+            
+            // Quarterly Deposits Chart
+            const quarterlyDepositsCtx = document.getElementById('quarterlyDepositsChart').getContext('2d');
+            const quarterlyDepositsChart = new Chart(quarterlyDepositsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                    datasets: [{
+                        label: 'Dépôts',
+                        data: [450, 500, 0, 0],
+                        backgroundColor: '#5D5CDE',
+                        borderRadius: 5
+                    }, {
+                        label: 'Marge Brute',
+                        data: [112.5, 125, 0, 0],
+                        backgroundColor: '#7371FC',
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: isDarkMode() ? '#F5F5F5' : '#333333'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false,
+                                color: isDarkMode() ? '#555555' : '#DDDDDD'
+                            },
+                            ticks: {
+                                color: isDarkMode() ? '#F5F5F5' : '#333333'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: isDarkMode() ? '#555555' : '#EEEEEE'
+                            },
+                            ticks: {
+                                color: isDarkMode() ? '#F5F5F5' : '#333333'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Performance Chart
+            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+            const performanceChart = new Chart(performanceCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Q1 2022', 'Q2 2022', 'Q3 2022', 'Q4 2022', 'Q1 2023', 'Q2 2023'],
+                    datasets: [{
+                        label: 'Solde',
+                        data: [1500, 1800, 2000, 2200, 2300, 2500],
+                        borderColor: '#5D5CDE',
+                        backgroundColor: 'rgba(93, 92, 222, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#5D5CDE'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: isDarkMode() ? '#F5F5F5' : '#333333'
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: isDarkMode() ? '#555555' : '#EEEEEE'
+                            },
+                            ticks: {
+                                color: isDarkMode() ? '#F5F5F5' : '#333333'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: isDarkMode() ? '#555555' : '#EEEEEE'
+                            },
+                            ticks: {
+                                color: isDarkMode() ? '#F5F5F5' : '#333333',
+                                callback: function(value) {
+                                    return value + ' €';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Margins Chart
+            const marginsCtx = document.getElementById('marginsChart').getContext('2d');
+            const marginsChart = new Chart(marginsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Q1 2022', 'Q2 2022', 'Q3 2022', 'Q4 2022', 'Q1 2023', 'Q2 2023'],
+                    datasets: [{
+                        label: 'Marge Brute',
+                        data: [75, 90, 100, 110, 112.5, 125],
+                        borderColor: '#42A5F5',
+                        backgroundColor: 'rgba(66, 165, 245, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#42A5F5'
+                    }, {
+                        label: 'Marge Nette',
+                        data: [67.5, 81, 90, 99, 101.25, 112.5],
+                        borderColor: '#66BB6A',
+                        backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#66BB6A'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: isDarkMode() ? '#F5F5F5' : '#333333'
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: isDarkMode() ? '#555555' : '#EEEEEE'
+                            },
+                            ticks: {
+                                color: isDarkMode() ? '#F5F5F5' : '#333333'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: isDarkMode() ? '#555555' : '#EEEEEE'
+                            },
+                            ticks: {
+                                color: isDarkMode() ? '#F5F5F5' : '#333333',
+                                callback: function(value) {
+                                    return value + ' €';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Portfolio Evolution Chart
+            const portfolioEvolutionCtx = document.getElementById('portfolioEvolutionChart').getContext('2d');
+            const portfolioEvolutionChart = new Chart(portfolioEvolutionCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+                    datasets: [{
+                        label: 'Dépôts',
+                        data: [150, 150, 150, 150, 200, 200],
+                        backgroundColor: '#5D5CDE',
+                        borderRadius: 5
+                    }, {
+                        label: 'Retraits',
+                        data: [0, 0, 75, 0, 0, 0],
+                        backgroundColor: '#F44336',
+                        borderRadius: 5
+                    }, {
+                        label: 'Intérêts',
+                        data: [37.5, 0, 0, 0, 37.5, 0],
+                        backgroundColor: '#4CAF50',
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: isDarkMode() ? '#F5F5F5' : '#333333'
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: {
+                                display: false,
+                                color: isDarkMode() ? '#555555' : '#EEEEEE'
+                            },
+                            ticks: {
+                                color: isDarkMode() ? '#F5F5F5' : '#333333'
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            grid: {
+                                color: isDarkMode() ? '#555555' : '#EEEEEE'
+                            },
+                            ticks: {
+                                color: isDarkMode() ? '#F5F5F5' : '#333333',
+                                callback: function(value) {
+                                    return value + ' €';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Store charts in window for later access
+            window.kongoInvestCharts = {
+                accountTypeChart,
+                quarterlyDepositsChart,
+                performanceChart,
+                marginsChart,
+                portfolioEvolutionChart
+            };
+        }
+        
+        // Function to update charts when account changes
+        function updateCharts() {
+            // In a real app, you would fetch actual data from an API
+            // For demo purposes, we'll just use random data
+            
+            const charts = window.kongoInvestCharts;
+            
+            // Update Account Type Chart (maintain same categories)
+            // In real app, this might not change when accounts change
+            
+            // Update Quarterly Deposits Chart
+            const quarterlyData = generateRandomData(2, 4, 100, 600);
+            const quarterlyMargin = quarterlyData.map(val => Math.round(val * 0.25));
+            
+            charts.quarterlyDepositsChart.data.datasets[0].data = quarterlyData;
+            charts.quarterlyDepositsChart.data.datasets[1].data = quarterlyMargin;
+            charts.quarterlyDepositsChart.update();
+            
+            // Update Performance Chart
+            const performanceData = generateRandomData(6, 50, 1000, 3000);
+            charts.performanceChart.data.datasets[0].data = performanceData;
+            charts.performanceChart.update();
+            
+            // Update Margins Chart
+            const grossMarginData = generateRandomData(6, 20, 50, 150);
+            const netMarginData = grossMarginData.map(val => Math.round(val * 0.9));
+            
+            charts.marginsChart.data.datasets[0].data = grossMarginData;
+            charts.marginsChart.data.datasets[1].data = netMarginData;
+            charts.marginsChart.update();
+            
+            // Update Portfolio Evolution Chart
+            const depositsData = generateRandomData(6, 20, 100, 300);
+            const withdrawalsData = generateRandomData(6, 10, 0, 100);
+            const interestsData = generateRandomData(6, 5, 20, 50);
+            
+            charts.portfolioEvolutionChart.data.datasets[0].data = depositsData;
+            charts.portfolioEvolutionChart.data.datasets[1].data = withdrawalsData;
+            charts.portfolioEvolutionChart.data.datasets[2].data = interestsData;
+            charts.portfolioEvolutionChart.update();
+        }
+        
+        // Helper function to generate random data for charts
+        function generateRandomData(size, variance, min, max) {
+            const data = [];
+            for (let i = 0; i < size; i++) {
+                const range = (max - min) / variance;
+                const randomValue = Math.floor(Math.random() * range) * variance + min;
+                data.push(randomValue);
+            }
+            return data;
+        }
+        
+        // Function to update chart themes when dark mode changes
+        function updateChartsTheme() {
+            const isDark = isDarkMode();
+            const charts = window.kongoInvestCharts;
+            
+            if (!charts) return;
+            
+            const textColor = isDark ? '#F5F5F5' : '#333333';
+            const gridColor = isDark ? '#555555' : '#EEEEEE';
+            
+            // Update all charts
+            Object.values(charts).forEach(chart => {
+                // Update legend text color
+                if (chart.options.plugins && chart.options.plugins.legend) {
+                    chart.options.plugins.legend.labels.color = textColor;
+                }
+                
+                // Update axis colors
+                if (chart.options.scales) {
+                    if (chart.options.scales.x) {
+                        chart.options.scales.x.ticks.color = textColor;
+                        chart.options.scales.x.grid.color = gridColor;
+                    }
+                    if (chart.options.scales.y) {
+                        chart.options.scales.y.ticks.color = textColor;
+                        chart.options.scales.y.grid.color = gridColor;
+                    }
+                }
+                
+                chart.update();
+            });
+        }
+        
+        // Helper function to check if dark mode is enabled
+        function isDarkMode() {
+            return document.documentElement.classList.contains('dark');
+        }
+        
+        // Modal-related functionality
+        // DOM Elements for modals
+        const createAccountBtn = document.querySelector('.sidebar-actions .btn-primary');
+        const depositBtn = document.querySelector('.sidebar-actions .btn-outline-primary:nth-child(2)');
+        const withdrawalBtn = document.querySelector('.sidebar-actions .btn-outline-primary:nth-child(3)');
+        
+        const createAccountModal = new bootstrap.Modal(document.getElementById('createAccountModal'));
+        const depositModal = new bootstrap.Modal(document.getElementById('depositModal'));
+        const withdrawalModal = new bootstrap.Modal(document.getElementById('withdrawalModal'));
+        
+        // Create Account Modal
+        createAccountBtn.addEventListener('click', () => {
+            // Reset form
+            document.getElementById('createAccountForm').reset();
+            createAccountModal.show();
+        });
+        
+        document.getElementById('saveAccountBtn').addEventListener('click', () => {
+            // Validate form
+            const form = document.getElementById('createAccountForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // Get form values
+            const accountName = document.getElementById('accountName').value;
+            const accountType = document.getElementById('accountType').value;
+            const initialDeposit = document.getElementById('initialDeposit').value;
+            
+            // Show loader
+            loaderContainer.style.display = 'flex';
+            
+            // Simulate API call delay
+            setTimeout(() => {
+                // In a real app, this would be an API call to create a new account
+                console.log('Creating account:', { accountName, accountType, initialDeposit });
+                
+                // Add the new account to the sidebar
+                addAccountToSidebar(accountName, accountType, initialDeposit);
+                
+                // Hide loader and modal
+                loaderContainer.style.display = 'none';
+                createAccountModal.hide();
+                
+                // Show success message (you would use a toast or other notification)
+                alert('Compte créé avec succès!');
+            }, 1000);
+        });
+        
+        // Function to add a new account to the sidebar
+        function addAccountToSidebar(name, type, initialBalance) {
+            const accountList = document.querySelector('.account-list');
+            const accountId = 'account_' + Date.now(); // Generate a unique ID
+            
+            // Determine icon and background based on type
+            let iconClass, iconBackground;
+            switch (type) {
+                case 'medical':
+                    iconClass = 'fa-heartbeat';
+                    iconBackground = 'account-medical';
+                    break;
+                case 'project':
+                    iconClass = 'fa-building';
+                    iconBackground = 'account-project';
+                    break;
+                case 'education':
+                    iconClass = 'fa-graduation-cap';
+                    iconBackground = 'account-education';
+                    break;
+                case 'savings':
+                    iconClass = 'fa-piggy-bank';
+                    iconBackground = 'account-savings';
+                    break;
+                default:
+                    iconClass = 'fa-wallet';
+                    iconBackground = 'account-medical'; // Default
+            }
+            
+            // Create new account element
+            const accountElement = document.createElement('div');
+            accountElement.className = 'account-link';
+            accountElement.setAttribute('data-account', accountId);
+            accountElement.innerHTML = `
+                <div class="account-icon ${iconBackground}">
+                    <i class="fas ${iconClass}"></i>
+                </div>
+                <div class="account-name">${name}</div>
+                <div class="account-balance">${initialBalance} €</div>
+            `;
+            
+            // Add event listener
+            accountElement.addEventListener('click', () => {
+                accountLinks.forEach(l => l.classList.remove('active'));
+                accountElement.classList.add('active');
+                
+                loaderContainer.style.display = 'flex';
+                
+                setTimeout(() => {
+                    updateAccountUI(accountId);
+                    loaderContainer.style.display = 'none';
+                }, 500);
+            });
+            
+            // Add to account list
+            accountList.appendChild(accountElement);
+            
+            // Also update account select dropdowns in deposit and withdrawal modals
+            updateAccountSelectDropdowns();
+        }
+        
+        // Function to update account select dropdowns in modals
+        function updateAccountSelectDropdowns() {
+            const depositAccountSelect = document.getElementById('depositAccount');
+            const withdrawalAccountSelect = document.getElementById('withdrawalAccount');
+            
+            // Clear existing options (except the first one)
+            while (depositAccountSelect.options.length > 1) {
+                depositAccountSelect.remove(1);
+            }
+            
+            while (withdrawalAccountSelect.options.length > 1) {
+                withdrawalAccountSelect.remove(1);
+            }
+            
+            // Add accounts from the sidebar
+            const accountLinks = document.querySelectorAll('.account-link');
+            accountLinks.forEach(link => {
+                const accountId = link.getAttribute('data-account');
+                const accountName = link.querySelector('.account-name').textContent;
+                const accountBalance = link.querySelector('.account-balance').textContent;
+                
+                // Add to deposit select
+                const depositOption = document.createElement('option');
+                depositOption.value = accountId;
+                depositOption.textContent = accountName;
+                depositAccountSelect.appendChild(depositOption);
+                
+                // Add to withdrawal select with balance
+                const withdrawalOption = document.createElement('option');
+                withdrawalOption.value = accountId;
+                withdrawalOption.textContent = `${accountName} (${accountBalance})`;
+                withdrawalAccountSelect.appendChild(withdrawalOption);
+            });
+        }
+        
+        // Deposit Modal
+        depositBtn.addEventListener('click', () => {
+            // Reset form and calculations
+            document.getElementById('depositForm').reset();
+            document.getElementById('depositDate').valueAsDate = new Date();
+            document.getElementById('newGrossMargin').textContent = '0';
+            document.getElementById('previousGrossMargin').textContent = '0';
+            document.getElementById('totalGrossMargin').textContent = '0';
+            document.getElementById('newNetMargin').textContent = '0';
+            document.getElementById('previousNetMargin').textContent = '0';
+            document.getElementById('totalNetMargin').textContent = '0';
+            
+            // Update account dropdown
+            updateAccountSelectDropdowns();
+            
+            depositModal.show();
+        });
+        
+        // Calculate margins when deposit amount changes
+        document.getElementById('depositAmount').addEventListener('input', calculateMargins);
+        document.getElementById('depositAccount').addEventListener('change', () => {
+            // Update previous margins based on selected account
+            const accountId = document.getElementById('depositAccount').value;
+            if (accountId) {
+                // In a real app, you would fetch actual data for the account
+                // For demo purposes, we'll use made-up numbers
+                let previousGrossMargin, previousNetMargin;
+                
+                // Get mock data based on account type
+                if (accountId.includes('medical')) {
+                    previousGrossMargin = 900;
+                    previousNetMargin = 600;
+                } else if (accountId.includes('project')) {
+                    previousGrossMargin = 1200;
+                    previousNetMargin = 800;
+                } else if (accountId.includes('education')) {
+                    previousGrossMargin = 600;
+                    previousNetMargin = 400;
+                } else {
+                    previousGrossMargin = 1500;
+                    previousNetMargin = 1000;
+                }
+                
+                document.getElementById('previousGrossMargin').textContent = previousGrossMargin;
+                document.getElementById('previousNetMargin').textContent = previousNetMargin;
+                
+                // Recalculate with new previous values
+                calculateMargins();
+            }
+        });
+        
+        function calculateMargins() {
+            const depositAmount = parseFloat(document.getElementById('depositAmount').value) || 0;
+            const previousGrossMargin = parseFloat(document.getElementById('previousGrossMargin').textContent) || 0;
+            const previousNetMargin = parseFloat(document.getElementById('previousNetMargin').textContent) || 0;
+            
+            // Calculate according to the formula
+            // Levier: 1:4
+            // Nouvelle Marge Brute: Dépôt * Levier
+            // Marge Brute Obtenue: MB Précédente + MB Nouvelle
+            // Nouvelle Marge Nette: MB Nouvelle - Dépôt
+            // Marge Nette Obtenue: MN Précédente + MN Nouvelle
+            
+            const leverage = 4; // Levier 1:4
+            const newGrossMargin = depositAmount * leverage;
+            const totalGrossMargin = previousGrossMargin + newGrossMargin;
+            const newNetMargin = newGrossMargin - depositAmount;
+            const totalNetMargin = previousNetMargin + newNetMargin;
+            
+            // Update display
+            document.getElementById('newGrossMargin').textContent = newGrossMargin.toFixed(2);
+            document.getElementById('totalGrossMargin').textContent = totalGrossMargin.toFixed(2);
+            document.getElementById('newNetMargin').textContent = newNetMargin.toFixed(2);
+            document.getElementById('totalNetMargin').textContent = totalNetMargin.toFixed(2);
+        }
+        
+        document.getElementById('confirmDepositBtn').addEventListener('click', () => {
+            // Validate form
+            const form = document.getElementById('depositForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // Get form values
+            const accountId = document.getElementById('depositAccount').value;
+            const amount = document.getElementById('depositAmount').value;
+            const date = document.getElementById('depositDate').value;
+            const reference = document.getElementById('depositReference').value;
+            
+            // Show loader
+            loaderContainer.style.display = 'flex';
+            
+            // Simulate API call delay
+            setTimeout(() => {
+                // In a real app, this would be an API call to process the deposit
+                console.log('Processing deposit:', { accountId, amount, date, reference });
+                
+                // Update UI to reflect the deposit
+                updateUIAfterDeposit(accountId, amount);
+                
+                // Hide loader and modal
+                loaderContainer.style.display = 'none';
+                depositModal.hide();
+                
+                // Show success message
+                alert(`Dépôt de ${amount} € effectué avec succès!`);
+            }, 1000);
+        });
+        
+        function updateUIAfterDeposit(accountId, amount) {
+            // Update account balance in sidebar
+            const accountLink = document.querySelector(`.account-link[data-account="${accountId}"]`);
+            if (accountLink) {
+                const balanceElement = accountLink.querySelector('.account-balance');
+                const currentBalance = parseFloat(balanceElement.textContent.replace('€', '').replace(',', '').trim());
+                const newBalance = currentBalance + parseFloat(amount);
+                balanceElement.textContent = `${newBalance.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} €`;
+                
+                // If this is the active account, update the KPIs
+                if (accountLink.classList.contains('active')) {
+                    const kpiValues = document.querySelectorAll('.kpi-value');
+                    kpiValues[0].textContent = `${newBalance.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} €`;
+                    
+                    // Update deposit for current quarter
+                    const currentQuarterDeposit = parseFloat(kpiValues[1].textContent.replace('€', '').replace(',', '').trim());
+                    kpiValues[1].textContent = `${(currentQuarterDeposit + parseFloat(amount)).toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} €`;
+                    
+                    // Update margins based on the formula
+                    const leverage = 4;
+                    const newGrossMargin = parseFloat(amount) * leverage;
+                    const currentGrossMargin = parseFloat(kpiValues[2].textContent.replace('€', '').replace(',', '').trim());
+                    const newTotalGrossMargin = currentGrossMargin + newGrossMargin;
+                    kpiValues[2].textContent = `${newTotalGrossMargin.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+                    
+                    const newNetMargin = newGrossMargin - parseFloat(amount);
+                    const currentNetMargin = parseFloat(kpiValues[3].textContent.replace('€', '').replace(',', '').trim());
+                    const newTotalNetMargin = currentNetMargin + newNetMargin;
+                    kpiValues[3].textContent = `${newTotalNetMargin.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+                }
+            }
+            
+            // Update account select dropdowns
+            updateAccountSelectDropdowns();
+            
+            // Add transaction to recent transactions table
+            addTransactionToTable(amount, 'deposit');
+        }
+        
+        // Withdrawal Modal
+        withdrawalBtn.addEventListener('click', () => {
+            // Reset form
+            document.getElementById('withdrawalForm').reset();
+            document.getElementById('withdrawalDate').valueAsDate = new Date();
+            document.getElementById('withdrawalAmountError').style.display = 'none';
+            
+            // Update account dropdown
+            updateAccountSelectDropdowns();
+            
+            withdrawalModal.show();
+        });
+        
+        // Validate withdrawal amount doesn't exceed balance
+        document.getElementById('withdrawalAmount').addEventListener('input', function() {
+            const withdrawalAccount = document.getElementById('withdrawalAccount');
+            if (withdrawalAccount.value) {
+                const selectedOption = withdrawalAccount.options[withdrawalAccount.selectedIndex];
+                const balanceText = selectedOption.textContent.match(/\(([^)]+)\)/)[1];
+                const balance = parseFloat(balanceText.replace('€', '').replace(',', '').trim());
+                const withdrawalAmount = parseFloat(this.value) || 0;
+                
+                if (withdrawalAmount > balance) {
+                    document.getElementById('withdrawalAmountError').style.display = 'block';
+                    document.getElementById('confirmWithdrawalBtn').disabled = true;
+                } else {
+                    document.getElementById('withdrawalAmountError').style.display = 'none';
+                    document.getElementById('confirmWithdrawalBtn').disabled = false;
+                }
+            }
+        });
+        
+        document.getElementById('withdrawalAccount').addEventListener('change', function() {
+            // Revalidate amount when account changes
+            const event = new Event('input');
+            document.getElementById('withdrawalAmount').dispatchEvent(event);
+        });
+        
+        document.getElementById('confirmWithdrawalBtn').addEventListener('click', () => {
+            // Validate form
+            const form = document.getElementById('withdrawalForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // Get form values
+            const accountId = document.getElementById('withdrawalAccount').value;
+            const amount = document.getElementById('withdrawalAmount').value;
+            const date = document.getElementById('withdrawalDate').value;
+            const reason = document.getElementById('withdrawalReason').value;
+            const reference = document.getElementById('withdrawalReference').value;
+            
+            // Show loader
+            loaderContainer.style.display = 'flex';
+            
+            // Simulate API call delay
+            setTimeout(() => {
+                // In a real app, this would be an API call to process the withdrawal
+                console.log('Processing withdrawal:', { accountId, amount, date, reason, reference });
+                
+                // Update UI to reflect the withdrawal
+                updateUIAfterWithdrawal(accountId, amount);
+                
+                // Hide loader and modal
+                loaderContainer.style.display = 'none';
+                withdrawalModal.hide();
+                
+                // Show success message
+                alert(`Retrait de ${amount} € effectué avec succès!`);
+            }, 1000);
+        });
+        
+        function updateUIAfterWithdrawal(accountId, amount) {
+            // Update account balance in sidebar
+            const accountLink = document.querySelector(`.account-link[data-account="${accountId}"]`);
+            if (accountLink) {
+                const balanceElement = accountLink.querySelector('.account-balance');
+                const currentBalance = parseFloat(balanceElement.textContent.replace('€', '').replace(',', '').trim());
+                const newBalance = currentBalance - parseFloat(amount);
+                balanceElement.textContent = `${newBalance.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} €`;
+                
+                // If this is the active account, update the KPIs
+                if (accountLink.classList.contains('active')) {
+                    const kpiValues = document.querySelectorAll('.kpi-value');
+                    kpiValues[0].textContent = `${newBalance.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} €`;
+                }
+            }
+            
+            // Update account select dropdowns
+            updateAccountSelectDropdowns();
+            
+            // Add transaction to recent transactions table
+            addTransactionToTable(amount, 'withdrawal');
+        }
+        
+        // Helper function to add a transaction to the recent transactions table
+        function addTransactionToTable(amount, type) {
+            const transactionsTable = document.querySelector('.tab-pane.active table tbody');
+            if (!transactionsTable) return;
+            
+            const today = new Date();
+            const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+            const reference = `TR-${today.getFullYear().toString().slice(-2)}${(today.getMonth() + 1).toString().padStart(2, '0')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+            
+            const transactionRow = document.createElement('tr');
+            
+            if (type === 'deposit') {
+                transactionRow.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${reference}</td>
+                    <td><span class="transaction-type transaction-deposit">Dépôt</span></td>
+                    <td class="fw-bold text-success">+${amount} €</td>
+                    <td><span class="badge bg-success">Complété</span></td>
+                `;
+            } else {
+                transactionRow.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${reference}</td>
+                    <td><span class="transaction-type transaction-withdrawal">Retrait</span></td>
+                    <td class="fw-bold text-danger">-${amount} €</td>
+                    <td><span class="badge bg-success">Complété</span></td>
+                `;
+            }
+            
+            // Insert at the top of the table
+            transactionsTable.insertBefore(transactionRow, transactionsTable.firstChild);
+            
+            // Remove the last row if there are more than 5 rows
+            if (transactionsTable.children.length > 5) {
+                transactionsTable.removeChild(transactionsTable.lastChild);
+            }
+        }
+
+        // Initialize charts when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            
+            // Set today's date as default for date inputs
+            const dateInputs = document.querySelectorAll('input[type="date"]');
+            dateInputs.forEach(input => {
+                input.valueAsDate = new Date();
+            });
+        });
+    </script>
+
+
+</body></html>
