@@ -1,0 +1,698 @@
+<!DOCTYPE html><html lang="fr"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banque Épargne - Gestion de Compte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        'primary-dark': '#4A49C7'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.4s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-900 min-h-screen transition-colors duration-300">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 dark:text-white mb-2">💰 Banque Épargne</h1>
+            <p class="text-gray-600 dark:text-gray-400">Gestion de votre compte épargne</p>
+        </header>
+
+        <!-- Création de compte (visible au début) -->
+        <div id="accountCreation" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-4">🏛️ Créer votre compte épargne</h2>
+            <form id="createAccountForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="firstName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prénom</label>
+                        <input type="text" id="firstName" required="" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    </div>
+                    <div>
+                        <label for="lastName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom</label>
+                        <input type="text" id="lastName" required="" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    </div>
+                </div>
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                    <input type="email" id="email" required="" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                </div>
+                <div>
+                    <label for="initialDeposit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dépôt initial (minimum 50€)</label>
+                    <input type="number" id="initialDeposit" min="50" step="0.01" required="" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                </div>
+                <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">
+                    Créer mon compte épargne
+                </button>
+            </form>
+        </div>
+
+        <!-- Tableau de bord (masqué au début) -->
+        <div id="dashboard" class="hidden">
+            <!-- Informations du compte -->
+            <div class="bg-gradient-to-r from-primary to-primary-dark rounded-xl text-white p-6 mb-6 fade-in">
+                <h2 class="text-xl font-semibold mb-2">Bienvenue, <span id="accountHolder"></span></h2>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-90">Solde actuel</p>
+                        <p class="text-3xl font-bold" id="currentBalance">0,00 €</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm opacity-90">Numéro de compte</p>
+                        <p class="font-mono text-lg" id="accountNumber"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions rapides -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Dépôt -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">💵 Effectuer un dépôt</h3>
+                    <form id="depositForm">
+                        <div class="mb-4">
+                            <label for="depositAmount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Montant</label>
+                            <input type="number" id="depositAmount" min="0.01" step="0.01" required="" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        </div>
+                        
+                        <!-- Méthode de paiement -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Méthode de paiement</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <input type="radio" name="depositMethod" value="mobile" class="mr-2" required="">
+                                    <span class="text-gray-900 dark:text-white">📱 Mobile Money</span>
+                                </label>
+                                <label class="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <input type="radio" name="depositMethod" value="card" class="mr-2" required="">
+                                    <span class="text-gray-900 dark:text-white">💳 Carte Visa</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Informations Mobile Money -->
+                        <div id="mobileMoneyDeposit" class="hidden space-y-3 mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <div>
+                                <label for="depositMobileOperator" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Opérateur</label>
+                                <select id="depositMobileOperator" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                    <option value="">Choisir un opérateur</option>
+                                    <option value="orange">Orange Money</option>
+                                    <option value="mtn">MTN Money</option>
+                                    <option value="moov">Moov Money</option>
+                                    <option value="wave">Wave</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="depositMobileNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Numéro de téléphone</label>
+                                <input type="tel" id="depositMobileNumber" placeholder="Ex: +33 6 12 34 56 78" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            </div>
+                        </div>
+
+                        <!-- Informations Carte Visa -->
+                        <div id="cardInfoDeposit" class="hidden space-y-3 mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <div>
+                                <label for="depositCardNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Numéro de carte</label>
+                                <input type="text" id="depositCardNumber" placeholder="1234 5678 9012 3456" maxlength="19" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            </div>
+                            <div>
+                                <label for="depositCardName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom du porteur</label>
+                                <input type="text" id="depositCardName" placeholder="NOM PRENOM" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label for="depositCardExpiry" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date d'expiration</label>
+                                    <input type="text" id="depositCardExpiry" placeholder="MM/AA" maxlength="5" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                </div>
+                                <div>
+                                    <label for="depositCardCVV" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CVV</label>
+                                    <input type="text" id="depositCardCVV" placeholder="123" maxlength="3" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
+                            Déposer
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Retrait -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">💸 Effectuer un retrait</h3>
+                    <form id="withdrawForm">
+                        <div class="mb-4">
+                            <label for="withdrawAmount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Montant</label>
+                            <input type="number" id="withdrawAmount" min="0.01" step="0.01" required="" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        </div>
+                        
+                        <!-- Méthode de retrait -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Méthode de retrait</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <input type="radio" name="withdrawMethod" value="mobile" class="mr-2" required="">
+                                    <span class="text-gray-900 dark:text-white">📱 Mobile Money</span>
+                                </label>
+                                <label class="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <input type="radio" name="withdrawMethod" value="card" class="mr-2" required="">
+                                    <span class="text-gray-900 dark:text-white">💳 Carte Visa</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Informations Mobile Money -->
+                        <div id="mobileMoneyWithdraw" class="hidden space-y-3 mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <div>
+                                <label for="withdrawMobileOperator" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Opérateur</label>
+                                <select id="withdrawMobileOperator" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                    <option value="">Choisir un opérateur</option>
+                                    <option value="orange">Orange Money</option>
+                                    <option value="mtn">MTN Money</option>
+                                    <option value="moov">Moov Money</option>
+                                    <option value="wave">Wave</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="withdrawMobileNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Numéro de téléphone</label>
+                                <input type="tel" id="withdrawMobileNumber" placeholder="Ex: +33 6 12 34 56 78" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            </div>
+                        </div>
+
+                        <!-- Informations Carte Visa -->
+                        <div id="cardInfoWithdraw" class="hidden space-y-3 mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <div>
+                                <label for="withdrawCardNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Numéro de carte</label>
+                                <input type="text" id="withdrawCardNumber" placeholder="1234 5678 9012 3456" maxlength="19" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            </div>
+                            <div>
+                                <label for="withdrawCardName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom du porteur</label>
+                                <input type="text" id="withdrawCardName" placeholder="NOM PRENOM" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label for="withdrawCardExpiry" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date d'expiration</label>
+                                    <input type="text" id="withdrawCardExpiry" placeholder="MM/AA" maxlength="5" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                </div>
+                                <div>
+                                    <label for="withdrawCardCVV" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CVV</label>
+                                    <input type="text" id="withdrawCardCVV" placeholder="123" maxlength="3" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
+                            Retirer
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Historique des transactions -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">📊 Historique des transactions</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200 dark:border-gray-700">
+                                <th class="text-left py-2 px-4 font-medium text-gray-700 dark:text-gray-300">Date</th>
+                                <th class="text-left py-2 px-4 font-medium text-gray-700 dark:text-gray-300">Type</th>
+                                <th class="text-left py-2 px-4 font-medium text-gray-700 dark:text-gray-300">Montant</th>
+                                <th class="text-left py-2 px-4 font-medium text-gray-700 dark:text-gray-300">Solde</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionHistory">
+                            <!-- Les transactions seront ajoutées ici -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="noTransactions" class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    Aucune transaction pour le moment
+                </div>
+            </div>
+
+            <!-- Actions du compte -->
+            <div class="mt-6 text-center">
+                <button id="resetAccount" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200">
+                    Créer un nouveau compte
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages de notification -->
+        <div id="notification" class="fixed top-4 right-4 max-w-sm hidden">
+            <div class="bg-green-600 text-white p-4 rounded-lg shadow-lg">
+                <p id="notificationMessage"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Gestion du mode sombre
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Variables globales
+        let account = {
+            firstName: '',
+            lastName: '',
+            email: '',
+            accountNumber: '',
+            balance: 0,
+            transactions: []
+        };
+
+        // Éléments DOM
+        const accountCreationDiv = document.getElementById('accountCreation');
+        const dashboardDiv = document.getElementById('dashboard');
+        const createAccountForm = document.getElementById('createAccountForm');
+        const depositForm = document.getElementById('depositForm');
+        const withdrawForm = document.getElementById('withdrawForm');
+        const accountHolder = document.getElementById('accountHolder');
+        const currentBalance = document.getElementById('currentBalance');
+        const accountNumber = document.getElementById('accountNumber');
+        const transactionHistory = document.getElementById('transactionHistory');
+        const noTransactions = document.getElementById('noTransactions');
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notificationMessage');
+        const resetAccountBtn = document.getElementById('resetAccount');
+
+        // Fonctions utilitaires
+        function generateAccountNumber() {
+            return 'EP' + Math.random().toString().substr(2, 8);
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('fr-FR', {
+                style: 'currency',
+                currency: 'EUR'
+            }).format(amount);
+        }
+
+        function formatDate(date) {
+            return new Intl.DateTimeFormat('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(date);
+        }
+
+        function showNotification(message, type = 'success') {
+            notificationMessage.textContent = message;
+            
+            const notificationDiv = notification.querySelector('div');
+            notificationDiv.className = type === 'success' 
+                ? 'bg-green-600 text-white p-4 rounded-lg shadow-lg'
+                : 'bg-red-600 text-white p-4 rounded-lg shadow-lg';
+            
+            notification.classList.remove('hidden');
+            
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
+        }
+
+        function addTransaction(type, amount, balance) {
+            const transaction = {
+                id: Date.now(),
+                date: new Date(),
+                type: type,
+                amount: amount,
+                balance: balance
+            };
+            
+            account.transactions.unshift(transaction);
+            updateTransactionHistory();
+        }
+
+        function updateTransactionHistory() {
+            transactionHistory.innerHTML = '';
+            
+            if (account.transactions.length === 0) {
+                noTransactions.style.display = 'block';
+                return;
+            }
+            
+            noTransactions.style.display = 'none';
+            
+            account.transactions.forEach(transaction => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 slide-in';
+                
+                const typeIcon = transaction.type === 'Dépôt' ? '💵' : '💸';
+                const amountColor = transaction.type === 'Dépôt' ? 'text-green-600' : 'text-red-600';
+                const amountPrefix = transaction.type === 'Dépôt' ? '+' : '-';
+                
+                row.innerHTML = `
+                    <td class="py-3 px-4 text-gray-900 dark:text-white">${formatDate(transaction.date)}</td>
+                    <td class="py-3 px-4 text-gray-900 dark:text-white">${typeIcon} ${transaction.type}</td>
+                    <td class="py-3 px-4 font-semibold ${amountColor}">${amountPrefix}${formatCurrency(transaction.amount)}</td>
+                    <td class="py-3 px-4 text-gray-900 dark:text-white">${formatCurrency(transaction.balance)}</td>
+                `;
+                
+                transactionHistory.appendChild(row);
+            });
+        }
+
+        function updateBalance() {
+            currentBalance.textContent = formatCurrency(account.balance);
+        }
+
+        // Gestion des méthodes de paiement
+        function setupPaymentMethodHandlers() {
+            // Gestion des méthodes de dépôt
+            const depositMethods = document.querySelectorAll('input[name="depositMethod"]');
+            const mobileMoneyDepositDiv = document.getElementById('mobileMoneyDeposit');
+            const cardInfoDepositDiv = document.getElementById('cardInfoDeposit');
+            
+            depositMethods.forEach(method => {
+                method.addEventListener('change', function() {
+                    if (this.value === 'mobile') {
+                        mobileMoneyDepositDiv.classList.remove('hidden');
+                        cardInfoDepositDiv.classList.add('hidden');
+                        // Rendre les champs mobile money requis
+                        document.getElementById('depositMobileOperator').required = true;
+                        document.getElementById('depositMobileNumber').required = true;
+                        // Enlever les requirements des champs carte
+                        document.getElementById('depositCardNumber').required = false;
+                        document.getElementById('depositCardName').required = false;
+                        document.getElementById('depositCardExpiry').required = false;
+                        document.getElementById('depositCardCVV').required = false;
+                    } else if (this.value === 'card') {
+                        cardInfoDepositDiv.classList.remove('hidden');
+                        mobileMoneyDepositDiv.classList.add('hidden');
+                        // Rendre les champs carte requis
+                        document.getElementById('depositCardNumber').required = true;
+                        document.getElementById('depositCardName').required = true;
+                        document.getElementById('depositCardExpiry').required = true;
+                        document.getElementById('depositCardCVV').required = true;
+                        // Enlever les requirements des champs mobile money
+                        document.getElementById('depositMobileOperator').required = false;
+                        document.getElementById('depositMobileNumber').required = false;
+                    }
+                });
+            });
+
+            // Gestion des méthodes de retrait
+            const withdrawMethods = document.querySelectorAll('input[name="withdrawMethod"]');
+            const mobileMoneyWithdrawDiv = document.getElementById('mobileMoneyWithdraw');
+            const cardInfoWithdrawDiv = document.getElementById('cardInfoWithdraw');
+            
+            withdrawMethods.forEach(method => {
+                method.addEventListener('change', function() {
+                    if (this.value === 'mobile') {
+                        mobileMoneyWithdrawDiv.classList.remove('hidden');
+                        cardInfoWithdrawDiv.classList.add('hidden');
+                        // Rendre les champs mobile money requis
+                        document.getElementById('withdrawMobileOperator').required = true;
+                        document.getElementById('withdrawMobileNumber').required = true;
+                        // Enlever les requirements des champs carte
+                        document.getElementById('withdrawCardNumber').required = false;
+                        document.getElementById('withdrawCardName').required = false;
+                        document.getElementById('withdrawCardExpiry').required = false;
+                        document.getElementById('withdrawCardCVV').required = false;
+                    } else if (this.value === 'card') {
+                        cardInfoWithdrawDiv.classList.remove('hidden');
+                        mobileMoneyWithdrawDiv.classList.add('hidden');
+                        // Rendre les champs carte requis
+                        document.getElementById('withdrawCardNumber').required = true;
+                        document.getElementById('withdrawCardName').required = true;
+                        document.getElementById('withdrawCardExpiry').required = true;
+                        document.getElementById('withdrawCardCVV').required = true;
+                        // Enlever les requirements des champs mobile money
+                        document.getElementById('withdrawMobileOperator').required = false;
+                        document.getElementById('withdrawMobileNumber').required = false;
+                    }
+                });
+            });
+        }
+
+        // Formatage automatique des numéros de carte
+        function setupCardFormatting() {
+            const cardNumbers = [document.getElementById('depositCardNumber'), document.getElementById('withdrawCardNumber')];
+            const cardExpiries = [document.getElementById('depositCardExpiry'), document.getElementById('withdrawCardExpiry')];
+            
+            cardNumbers.forEach(input => {
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\s/g, '');
+                    let formattedValue = value.replace(/(.{4})/g, '$1 ').trim();
+                    if (formattedValue.length > 19) formattedValue = formattedValue.substr(0, 19);
+                    e.target.value = formattedValue;
+                });
+            });
+            
+            cardExpiries.forEach(input => {
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length >= 2) {
+                        value = value.substr(0, 2) + '/' + value.substr(2, 2);
+                    }
+                    e.target.value = value;
+                });
+            });
+        }
+
+        function validatePaymentMethod(formType) {
+            const methodInput = document.querySelector(`input[name="${formType}Method"]:checked`);
+            if (!methodInput) {
+                showNotification('Veuillez sélectionner une méthode de paiement', 'error');
+                return false;
+            }
+
+            if (methodInput.value === 'mobile') {
+                const operator = document.getElementById(`${formType}MobileOperator`).value;
+                const number = document.getElementById(`${formType}MobileNumber`).value;
+                
+                if (!operator) {
+                    showNotification('Veuillez sélectionner un opérateur mobile', 'error');
+                    return false;
+                }
+                if (!number) {
+                    showNotification('Veuillez saisir votre numéro de téléphone', 'error');
+                    return false;
+                }
+            } else if (methodInput.value === 'card') {
+                const cardNumber = document.getElementById(`${formType}CardNumber`).value;
+                const cardName = document.getElementById(`${formType}CardName`).value;
+                const cardExpiry = document.getElementById(`${formType}CardExpiry`).value;
+                const cardCVV = document.getElementById(`${formType}CardCVV`).value;
+                
+                if (!cardNumber || cardNumber.replace(/\s/g, '').length < 16) {
+                    showNotification('Veuillez saisir un numéro de carte valide', 'error');
+                    return false;
+                }
+                if (!cardName) {
+                    showNotification('Veuillez saisir le nom du porteur', 'error');
+                    return false;
+                }
+                if (!cardExpiry || cardExpiry.length < 5) {
+                    showNotification('Veuillez saisir une date d\'expiration valide', 'error');
+                    return false;
+                }
+                if (!cardCVV || cardCVV.length < 3) {
+                    showNotification('Veuillez saisir un CVV valide', 'error');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function getPaymentInfo(formType) {
+            const methodInput = document.querySelector(`input[name="${formType}Method"]:checked`);
+            if (methodInput.value === 'mobile') {
+                const operator = document.getElementById(`${formType}MobileOperator`).value;
+                const number = document.getElementById(`${formType}MobileNumber`).value;
+                return {
+                    method: 'Mobile Money',
+                    operator: operator,
+                    number: number
+                };
+            } else {
+                const cardNumber = document.getElementById(`${formType}CardNumber`).value;
+                const cardName = document.getElementById(`${formType}CardName`).value;
+                return {
+                    method: 'Carte Visa',
+                    cardNumber: '**** **** **** ' + cardNumber.slice(-4),
+                    cardName: cardName
+                };
+            }
+        }
+
+        // Initialiser les gestionnaires
+        setupPaymentMethodHandlers();
+        setupCardFormatting();
+
+        // Gestionnaires d'événements
+        createAccountForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const email = document.getElementById('email').value;
+            const initialDeposit = parseFloat(document.getElementById('initialDeposit').value);
+            
+            if (initialDeposit < 50) {
+                showNotification('Le dépôt initial doit être d\'au moins 50€', 'error');
+                return;
+            }
+            
+            // Créer le compte
+            account.firstName = firstName;
+            account.lastName = lastName;
+            account.email = email;
+            account.accountNumber = generateAccountNumber();
+            account.balance = initialDeposit;
+            account.transactions = [];
+            
+            // Ajouter la transaction initiale
+            addTransaction('Dépôt', initialDeposit, initialDeposit);
+            
+            // Mettre à jour l'interface
+            accountHolder.textContent = `${firstName} ${lastName}`;
+            accountNumber.textContent = account.accountNumber;
+            updateBalance();
+            
+            // Afficher le tableau de bord
+            accountCreationDiv.style.display = 'none';
+            dashboardDiv.classList.remove('hidden');
+            dashboardDiv.classList.add('fade-in');
+            
+            showNotification('Compte créé avec succès !');
+        });
+
+        depositForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const amount = parseFloat(document.getElementById('depositAmount').value);
+            
+            if (amount <= 0) {
+                showNotification('Le montant doit être supérieur à 0€', 'error');
+                return;
+            }
+            
+            // Valider la méthode de paiement
+            if (!validatePaymentMethod('deposit')) {
+                return;
+            }
+            
+            const paymentInfo = getPaymentInfo('deposit');
+            
+            account.balance += amount;
+            addTransaction('Dépôt', amount, account.balance);
+            updateBalance();
+            
+            // Réinitialiser le formulaire
+            depositForm.reset();
+            document.getElementById('mobileMoneyDeposit').classList.add('hidden');
+            document.getElementById('cardInfoDeposit').classList.add('hidden');
+            
+            let paymentDetails = '';
+            if (paymentInfo.method === 'Mobile Money') {
+                paymentDetails = ` via ${paymentInfo.operator} (${paymentInfo.number})`;
+            } else {
+                paymentDetails = ` via ${paymentInfo.method} (${paymentInfo.cardNumber})`;
+            }
+            
+            showNotification(`Dépôt de ${formatCurrency(amount)} effectué avec succès${paymentDetails} !`);
+        });
+
+        withdrawForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            
+            if (amount <= 0) {
+                showNotification('Le montant doit être supérieur à 0€', 'error');
+                return;
+            }
+            
+            if (amount > account.balance) {
+                showNotification('Solde insuffisant pour effectuer ce retrait', 'error');
+                return;
+            }
+            
+            // Valider la méthode de paiement
+            if (!validatePaymentMethod('withdraw')) {
+                return;
+            }
+            
+            const paymentInfo = getPaymentInfo('withdraw');
+            
+            account.balance -= amount;
+            addTransaction('Retrait', amount, account.balance);
+            updateBalance();
+            
+            // Réinitialiser le formulaire
+            withdrawForm.reset();
+            document.getElementById('mobileMoneyWithdraw').classList.add('hidden');
+            document.getElementById('cardInfoWithdraw').classList.add('hidden');
+            
+            let paymentDetails = '';
+            if (paymentInfo.method === 'Mobile Money') {
+                paymentDetails = ` vers ${paymentInfo.operator} (${paymentInfo.number})`;
+            } else {
+                paymentDetails = ` vers ${paymentInfo.method} (${paymentInfo.cardNumber})`;
+            }
+            
+            showNotification(`Retrait de ${formatCurrency(amount)} effectué avec succès${paymentDetails} !`);
+        });
+
+        resetAccountBtn.addEventListener('click', function() {
+            // Réinitialiser l'application
+            account = {
+                firstName: '',
+                lastName: '',
+                email: '',
+                accountNumber: '',
+                balance: 0,
+                transactions: []
+            };
+            
+            // Réinitialiser les formulaires
+            createAccountForm.reset();
+            depositForm.reset();
+            withdrawForm.reset();
+            
+            // Afficher la création de compte
+            dashboardDiv.classList.add('hidden');
+            accountCreationDiv.style.display = 'block';
+            
+            showNotification('Prêt pour créer un nouveau compte');
+        });
+    </script>
+
+
+</body></html>
